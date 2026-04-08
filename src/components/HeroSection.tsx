@@ -143,9 +143,9 @@ const HeroSection = () => {
         </AnimatePresence>
       </div>
 
-      {/* Manual Navigation Arrows - Positioned at far corners with clarity */}
+      {/* Manual Navigation Arrows - Desktop Only */}
       {activeSlides.length > 1 && (
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-30 w-full px-2 md:px-4 flex justify-between pointer-events-none">
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-30 w-full px-2 md:px-4 hidden md:flex justify-between pointer-events-none">
           <button 
             onClick={handlePrev}
             className="pointer-events-auto w-10 h-10 md:w-14 md:h-14 flex items-center justify-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-white/30 hover:text-[#B0843D] hover:bg-white/10 hover:border-[#B0843D]/30 hover:scale-110 active:scale-90 transition-all shadow-xl"
@@ -158,6 +158,28 @@ const HeroSection = () => {
           >
             <ChevronRight className="w-5 h-5 md:w-7 md:h-7" />
           </button>
+        </div>
+      )}
+
+      {/* Slider Indicator Line - Smooth Moving */}
+      {activeSlides.length > 1 && (
+        <div className="absolute bottom-10 left-12 sm:left-16 md:left-24 z-30 flex items-center gap-2">
+          {activeSlides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className="py-2 focus:outline-none group"
+            >
+              <div className={`h-[2px] transition-all duration-700 ease-out rounded-full ${
+                i === current ? 'w-12 md:w-16 bg-[#B0843D]' : 'w-4 md:w-6 bg-white/20 group-hover:bg-white/40'
+              }`} />
+            </button>
+          ))}
+          <div className="ml-4 flex items-center font-sans text-[10px] md:text-[12px] font-bold text-white/40 tracking-[0.2em] uppercase">
+            <span className="text-white">0{current + 1}</span>
+            <span className="mx-2 opacity-20">/</span>
+            <span>0{activeSlides.length}</span>
+          </div>
         </div>
       )}
 

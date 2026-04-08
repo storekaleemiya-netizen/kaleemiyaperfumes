@@ -16,8 +16,8 @@ const categories = [
 
 const CategoriesSection = () => {
   return (
-    <section className="section-padding">
-      <SectionHeading title="Shop by Category" subtitle="Explore our curated collections" />
+    <section className="section-padding bg-[#310101]">
+      <SectionHeading title="Shop by Category" subtitle="Explore our curated collections" light={true} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-[1200px] mx-auto">
         {categories.map((cat, i) => (
@@ -36,9 +36,9 @@ const CategoriesSection = () => {
                 loading="lazy"
               />
               <div className="absolute inset-0 border border-white/10 group-hover:border-primary/20 rounded-sm transition-all duration-500" />
-              <div className="absolute bottom-0 left-0 p-8 w-full bg-gradient-to-t from-black/20 to-transparent">
-                <h3 className="font-serif text-2xl md:text-3xl text-white mb-1 drop-shadow-md">{cat.title}</h3>
-                <p className="text-white/90 font-sans text-sm tracking-wide drop-shadow-sm">{cat.subtitle}</p>
+              <div className="absolute bottom-0 left-0 p-8 w-full bg-gradient-to-t from-black/60 via-black/20 to-transparent">
+                <h3 className="font-serif text-2xl md:text-3xl text-white mb-1 drop-shadow-lg">{cat.title}</h3>
+                <p className="text-white/90 font-sans text-sm tracking-wide drop-shadow-md">{cat.subtitle}</p>
               </div>
             </motion.div>
           </Link>

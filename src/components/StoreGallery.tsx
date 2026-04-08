@@ -103,14 +103,14 @@ const StoreGallery = () => {
   }, [selectedIndex, showNext, showPrev]);
 
   return (
-    <section className="section-padding overflow-hidden bg-background">
+    <section className="section-padding overflow-hidden bg-[#310101]">
       <div className="max-w-[1440px] mx-auto">
         <div className="text-center mb-16">
           <motion.span 
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-primary font-sans text-sm uppercase tracking-[0.3em] font-bold mb-4 block"
+            className="text-[#B0843D] font-sans text-sm uppercase tracking-[0.3em] font-bold mb-4 block"
           >
             Our Boutique
           </motion.span>
@@ -119,7 +119,7 @@ const StoreGallery = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground"
+            className="font-serif text-3xl md:text-4xl lg:text-5xl text-white"
           >
             Visit the World of Kaleemiya
           </motion.h2>
@@ -128,7 +128,7 @@ const StoreGallery = () => {
             whileInView={{ width: 80 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3, duration: 0.8 }}
-            className="h-[2px] bg-primary mx-auto mt-6"
+            className="h-[1px] bg-[#B0843D] mx-auto mt-6"
           />
         </div>
 

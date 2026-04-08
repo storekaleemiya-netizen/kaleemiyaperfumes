@@ -72,6 +72,7 @@
     font-weight: 600;
     text-wrap: balance;
     letter-spacing: -0.01em;
+    @apply text-foreground;
   }
 
   p {

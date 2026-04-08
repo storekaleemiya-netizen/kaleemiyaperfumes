@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Instagram, Facebook, Twitter } from "lucide-react";
+import { Instagram, Facebook } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const footerLinks = {
@@ -23,8 +23,9 @@ const footerLinks = {
     { name: "Refund Policy", href: "/refund-policy" },
   ],
   Contact: [
-    { name: "support@kaleemiya.com", href: "mailto:support@kaleemiya.com" },
-    { name: "+91 98765 43210", href: "tel:+919876543210" },
+    { name: "storekaleemiya@gmail.com", href: "mailto:storekaleemiya@gmail.com" },
+    { name: "+91 98856 55591", href: "tel:+919885655591" },
+    { name: "+91 98856 55592", href: "tel:+919885655592" },
     { name: "Hyderabad, Telangana 500001", href: "/contact" },
   ],
 };
@@ -95,9 +96,19 @@ const Footer = () => {
               </p>
             </div>
             <div className="flex items-center gap-5">
-              {[Instagram, Facebook, Twitter].map((Icon, i) => (
-                <a key={i} href="#" className="text-[#D4AF37]/80 hover:text-[#D4AF37] transition-colors duration-300" aria-label="Social link">
-                  <Icon className="w-5 h-5" />
+              {[
+                { icon: Instagram, href: "https://www.instagram.com/kaleemiya_store/" },
+                { icon: Facebook, href: "https://www.facebook.com/people/Kaleemiya-Store/61556359475793/" }
+              ].map((social, i) => (
+                <a 
+                  key={i} 
+                  href={social.href} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-[#D4AF37]/80 hover:text-[#D4AF37] transition-colors duration-300" 
+                  aria-label="Social link"
+                >
+                  <social.icon className="w-5 h-5" />
                 </a>
               ))}
             </div>

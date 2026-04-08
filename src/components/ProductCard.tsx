@@ -2,6 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import { Star, ShoppingCart } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useUI } from "@/context/UIContext.tsx";
+import { toast } from "sonner";
 
 interface ProductCardProps {
   id: string;
@@ -17,6 +20,8 @@ interface ProductCardProps {
 
 const ProductCard = ({ id, image, name, price, isNew, category, subCategory, discountPrice, video }: ProductCardProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { openLogin } = useUI();
   const { addToCart } = useCart();
 
   // Simple Manual Discount Logic
@@ -33,6 +38,11 @@ const ProductCard = ({ id, image, name, price, isNew, category, subCategory, dis
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!user) {
+      toast.info("Please sign-in to continue your artisan journey.");
+      openLogin();
+      return;
+    }
     // Use the correctly discounted price for the cart
     const finalCartPrice = activeDiscountPrice 
       ? (activeDiscountPrice.startsWith('\u20B9') ? activeDiscountPrice : `\u20B9${parseInt(activeDiscountPrice).toLocaleString()}`) 

@@ -62,7 +62,7 @@ const AnnouncementBanner = () => {
   const displayItems = [...announcements, ...announcements, ...announcements];
 
   return (
-    <div className="relative z-[60] group border-b border-white/5 bg-[#310101] h-9 sm:h-11 flex items-center overflow-hidden">
+    <div className="relative z-[60] group bg-[#310101] h-9 sm:h-11 flex items-center overflow-hidden">
       {/* Premium Marquee Logic using CSS for hardware acceleration */}
       <style>{`
         @keyframes luxury-marquee {
