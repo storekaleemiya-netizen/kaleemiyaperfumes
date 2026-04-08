@@ -26,11 +26,13 @@ import productExtra2 from "@/assets/product-extra-2.png";
 import productExtra3 from "@/assets/product-extra-3.png";
 import productExtra4 from "@/assets/product-extra-4.png";
 import { toast } from "sonner";
+import { useUI } from "@/context/UIContext.tsx";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, role } = useAuth();
+  const { openLogin } = useUI();
   const { addToCart } = useCart();
   const { products, loading } = useProducts();
   const product = products.find((p) => p.id === id);
@@ -83,6 +85,11 @@ const ProductDetail = () => {
   }
 
   const handleAddToCart = () => {
+    if (!user) {
+      toast.info("Please sign-in to continue your artisan journey.");
+      openLogin();
+      return;
+    }
     addToCart({
       id: product.id,
       name: product.name,

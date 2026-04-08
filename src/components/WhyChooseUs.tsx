@@ -11,8 +11,8 @@ const features = [
 
 const WhyChooseUs = () => {
   return (
-    <section className="section-padding">
-      <SectionHeading title="Why Kaleemiya" subtitle="What makes our fragrances extraordinary" />
+    <section className="section-padding bg-[#310101]">
+      <SectionHeading title="Why Kaleemiya" subtitle="What makes our fragrances extraordinary" light={true} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-[1200px] mx-auto">
         {features.map((f, i) => (
@@ -24,11 +24,11 @@ const WhyChooseUs = () => {
             transition={{ duration: 0.6, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
             className="text-center group"
           >
-            <div className="w-16 h-16 mx-auto mb-6 rounded-full border border-primary/20 flex items-center justify-center group-hover:border-primary/50 group-hover:gold-glow transition-all duration-500">
-              <f.icon className="w-7 h-7 text-primary/70 group-hover:text-primary transition-colors duration-300" />
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full border border-[#B0843D]/30 flex items-center justify-center group-hover:border-[#B0843D] group-hover:gold-glow transition-all duration-500 bg-white/5">
+              <f.icon className="w-7 h-7 text-[#B0843D] transition-colors duration-300" />
             </div>
-            <h3 className="font-serif text-xl mb-2">{f.title}</h3>
-            <p className="text-muted-foreground font-sans text-sm leading-relaxed">{f.desc}</p>
+            <h3 className="font-serif text-xl mb-2 text-white">{f.title}</h3>
+            <p className="text-white/60 font-sans text-sm leading-relaxed">{f.desc}</p>
           </motion.div>
         ))}
       </div>

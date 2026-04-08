@@ -37,6 +37,8 @@ import Checkout from "./pages/Checkout.tsx";
 
 import SEOHead from "./components/SEOHead.tsx";
 
+import { UIProvider } from "./context/UIContext.tsx";
+
 const queryClient = new QueryClient();
 
 // Protected Route Component
@@ -107,12 +109,13 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <CartProvider>
-            <AnimatePresence mode="wait">
-              {loading && <SplashScreen onComplete={handleSplashComplete} />}
-            </AnimatePresence>
-            
-            {!loading && (
+          <UIProvider>
+            <CartProvider>
+              <AnimatePresence mode="wait">
+                {loading && <SplashScreen onComplete={handleSplashComplete} />}
+              </AnimatePresence>
+              
+              {!loading && (
               <BrowserRouter 
                 future={{ 
                   v7_startTransition: true,
@@ -164,6 +167,7 @@ const App = () => {
               </BrowserRouter>
             )}
           </CartProvider>
+          </UIProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>

@@ -17,15 +17,16 @@ const navLinks = [
 ];
 
 import AccountDrawer from "./AccountDrawer";
+import { useUI } from "@/context/UIContext.tsx";
 
 const Header = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { accountOpen, setAccountOpen } = useUI();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [megaMenuTimer, setMegaMenuTimer] = useState<any>(null);
 
@@ -73,18 +74,18 @@ const Header = () => {
     };
   }, []);
 
-  // Premium Ivory Background Color
-  const headerBg = "#F9F6F2"; 
+  // Premium Dark Background Color
+  const headerBg = "#310101"; 
 
   return (
     <>
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 shadow-sm border-b border-gray-100 backdrop-blur-md`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 shadow-xl backdrop-blur-md`}
       style={{ backgroundColor: `${headerBg}F0` }} // Added transparency for blur effect
     >
       <AnnouncementBanner />
 
-      <div className="w-full bg-[#F9F6F2]">
+      <div className="w-full" style={{ backgroundColor: headerBg }}>
         <div className="max-w-screen-2xl mx-auto px-4 md:px-6 flex items-center h-20 sm:h-24 lg:h-28 relative">
           
           {/* Logo - Fixed Left */}
@@ -122,23 +123,23 @@ const Header = () => {
                     >
                       <Link
                         to={link.path}
-                        className="text-[9.5px] 2xl:text-[12px] font-bold uppercase tracking-[0.15em] text-black hover:text-[#B0843D] transition-all whitespace-nowrap px-2 2xl:px-4 flex items-center gap-1"
+                        className="text-[9.5px] 2xl:text-[12px] font-bold uppercase tracking-[0.15em] text-white hover:text-[#DEB87A] transition-all whitespace-nowrap px-2 2xl:px-4 flex items-center gap-1"
                       >
                         {link.name}
-                        <ChevronDown className="w-3 h-3 opacity-30 shrink-0" />
+                        <ChevronDown className="w-3 h-3 opacity-50 shrink-0 text-[#DEB87A]" />
                       </Link>
                     </div>
                   ) : (
                     <Link
                       to={link.path}
-                      className="text-[9.5px] 2xl:text-[12px] font-bold uppercase tracking-[0.15em] text-black hover:text-[#B0843D] transition-all whitespace-nowrap px-2 2xl:px-4"
+                      className="text-[9.5px] 2xl:text-[12px] font-bold uppercase tracking-[0.15em] text-white hover:text-[#DEB87A] transition-all whitespace-nowrap px-2 2xl:px-4"
                     >
                       {link.name}
                     </Link>
                   )}
                   {/* Subtle Separator */}
                   {index < array.length - 1 && (
-                    <span className="w-[1px] h-3 bg-black/10 shrink-0" />
+                    <span className="w-[1px] h-3 bg-white/10 shrink-0" />
                   )}
                 </li>
               ))}
@@ -150,7 +151,7 @@ const Header = () => {
             {/* Universal Search (Desktop & Mobile) */}
             <button 
               onClick={() => setSearchOpen(true)}
-              className="p-2 text-black/70 hover:text-[#B0843D] active:scale-90 transition-all"
+              className="p-2 text-white/80 hover:text-[#DEB87A] active:scale-90 transition-all"
             >
               <Search className="w-5.5 h-5.5 lg:w-6 lg:h-6" />
             </button>
@@ -158,9 +159,9 @@ const Header = () => {
             {/* Account */}
             <button 
               onClick={() => setAccountOpen(true)}
-              className="text-black hover:text-[#B0843D] transition-colors hidden md:flex items-center gap-2 group"
+              className="text-white hover:text-[#DEB87A] transition-colors hidden md:flex items-center gap-2 group"
             >
-              <User className="w-5 h-5 text-black group-hover:text-[#B0843D] transition-colors" />
+              <User className="w-5 h-5 text-white group-hover:text-[#DEB87A] transition-colors" />
               <span className="hidden 2xl:inline text-[12px] uppercase tracking-[0.2em] font-black whitespace-nowrap">
                 {user ? (user.displayName || user.email?.split('@')[0]) : "Account"}
               </span>
@@ -173,7 +174,7 @@ const Header = () => {
             
             {/* Hamburger Trigger */}
             <button 
-              className="xl:hidden text-black p-2 active:scale-95 transition-all hover:bg-black/5 rounded-full"
+              className="xl:hidden text-white p-2 active:scale-95 transition-all hover:bg-white/5 rounded-full"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
               {mobileOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}

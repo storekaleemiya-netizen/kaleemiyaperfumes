@@ -13,8 +13,14 @@ import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
 import { useNavigate } from "react-router-dom";
 
+import { useAuth } from "@/context/AuthContext";
+import { useUI } from "@/context/UIContext.tsx";
+import { toast } from "sonner";
+
 const CartDrawer = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { openLogin } = useUI();
   const { cart, removeFromCart, updateQuantity, totalCount, clearCart, addToCart } = useCart();
   const { products } = useProducts();
   const [isSuccess, setIsSuccess] = React.useState(false);
@@ -38,6 +44,11 @@ const CartDrawer = () => {
   };
 
   const handleCheckout = () => {
+    if (!user) {
+      toast.info("Please sign-in to complete your boutique order.");
+      openLogin();
+      return;
+    }
     navigate('/checkout');
   };
 
@@ -49,10 +60,10 @@ const CartDrawer = () => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <button className="relative p-2 text-black hover:bg-[#F9F6F2] rounded-full transition-all flex items-center group">
+        <button className="relative p-2 text-white hover:bg-white/10 rounded-full transition-all flex items-center group">
           <ShoppingBag className="w-[22px] h-[22px] group-hover:scale-110 transition-transform" strokeWidth={1.5} />
           {totalCount > 0 && (
-            <span className="absolute top-1 right-1 w-4.5 h-4.5 rounded-full bg-[#310101] text-[9px] flex items-center justify-center text-white font-bold border-2 border-white shadow-sm">
+            <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[#310101] text-[11px] flex items-center justify-center text-white font-black border-2 border-white shadow-md group-hover:scale-110 transition-transform">
               {totalCount}
             </span>
           )}
@@ -237,6 +248,11 @@ const CartDrawer = () => {
                              <button 
                                onClick={(e) => {
                                  e.stopPropagation();
+                                 if (!user) {
+                                   toast.info("Please sign-in to continue your artisan journey.");
+                                   openLogin();
+                                   return;
+                                 }
                                  addToCart({ id: item.id, name: item.name, price: item.price, image: item.image });
                                }}
                                className="flex-1 h-11 bg-[#F9F6F2] text-[#B0843D] rounded-full text-[12px] font-black uppercase tracking-widest hover:bg-[#B0843D] hover:text-white transition-all flex items-center justify-center border border-[#B0843D]/10"

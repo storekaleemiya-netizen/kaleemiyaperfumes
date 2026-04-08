@@ -37,6 +37,7 @@ export interface Product {
     createdAt?: any;
     isFallback?: boolean;
     extraImages?: string[];
+    video?: string;
 }
 
 export const BOUTIQUE_FALLBACKS: Product[] = [];
