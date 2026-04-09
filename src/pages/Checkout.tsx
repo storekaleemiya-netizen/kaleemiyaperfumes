@@ -12,6 +12,8 @@ import {
 } from "firebase/auth";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, Timestamp } from "firebase/firestore";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -144,11 +146,46 @@ const Checkout = () => {
       }
     } else if (checkoutStep === 'address') {
       if (address.fullName && address.fullAddress && address.pincode) {
-        setCheckoutStep('success');
-        setTimeout(() => {
-          clearCart();
-          navigate("/");
-        }, 3500);
+        if (!user) {
+          toast.error("Identity verification required.");
+          setCheckoutStep('login');
+          return;
+        }
+
+        setIsProcessing(true);
+        try {
+          const generatedId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+          const orderData = {
+            orderId: generatedId,
+            userId: user.uid,
+            customer: address.fullName,
+            phone: mobileNumber,
+            address: address,
+            items: cart.map(item => ({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image
+            })),
+            totalAmount: discountedPrice,
+            status: "Established",
+            createdAt: Timestamp.now()
+          };
+
+          await addDoc(collection(db, "orders"), orderData);
+          setCheckoutStep('success');
+          
+          setTimeout(() => {
+            clearCart();
+            navigate("/my-orders");
+          }, 3500);
+        } catch (error) {
+          console.error("Order Error:", error);
+          toast.error("Failed to establish artisan order.");
+        } finally {
+          setIsProcessing(false);
+        }
       } else {
         toast.error("Please complete your delivery details.");
       }

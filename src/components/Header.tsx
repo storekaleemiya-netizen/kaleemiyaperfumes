@@ -13,6 +13,8 @@ const navLinks = [
   { name: "Gift Sets", href: "/gift-sets" },
   { name: "Prayer Mats", href: "/prayer-mats" },
   { name: "Books", href: "/books" },
+  { name: "Track Order", href: "/track-order" },
+  { name: "My Orders", href: "/my-orders" },
   { name: "Contact", href: "/contact" }
 ];
 
@@ -101,20 +103,14 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* Centered Navigation - Desktop Only (Hidden below XL) */}
           <nav className="hidden xl:flex absolute inset-0 items-center justify-center pointer-events-none px-40">
             <ul className="flex items-center pointer-events-auto mr-16">
-              {[
-                { name: "Home", path: "/" },
-                { name: "Shop", path: "/shop" },
-                { name: "Attar", path: "/attar" },
-                { name: "Gift Sets", path: "/gift-sets" },
-                { name: "Prayer Mats", path: "/prayer-mats" },
-                { name: "Books", path: "/books" },
-                { name: "Contact", path: "/contact" },
+              {( [
+                ...navLinks
+                  .filter(l => !["Home", "Track Order", "My Orders"].includes(l.name))
+                  .map(l => ({ name: l.name, path: l.href })),
                 { name: "All Collections", path: "/shop", isMega: true },
-                { name: "Track Order", path: "/track-order" },
-              ].map((link, index, array) => (
+              ] as any[]).map((link, index, array) => (
                 <li key={link.name} className="flex items-center">
                   {link.isMega ? (
                     <div 

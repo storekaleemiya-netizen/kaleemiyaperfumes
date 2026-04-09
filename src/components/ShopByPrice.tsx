@@ -4,7 +4,8 @@ import { Product } from "@/data/products";
 import SectionHeading from "./SectionHeading";
 import ProductCard from "./ProductCard";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 
 const tabs = ["Under ₹2,000", "₹2,000 – ₹5,000", "Premium"];
@@ -86,6 +87,16 @@ const ShopByPrice = () => {
         >
           <ChevronRight className="w-5 h-5" />
         </button>
+      </div>
+
+      <div className="mt-12 flex justify-center px-4 sm:px-0">
+        <Link 
+          to="/shop" 
+          className="group relative w-full sm:w-auto min-w-[280px] max-w-xs sm:max-w-none px-10 py-4 bg-[#310101] border border-[#310101] hover:bg-transparent hover:text-[#310101] transition-all duration-500 rounded-full overflow-hidden flex items-center justify-center shadow-lg"
+        >
+          <div className="absolute inset-0 bg-white translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
+          <span className="relative text-[13px] font-black uppercase tracking-[0.3em] text-white group-hover:text-[#310101]">Explore Full Collection</span>
+        </Link>
       </div>
     </section>
   );

@@ -54,7 +54,7 @@ export default defineConfig(({ mode }) => ({
         navigateFallbackDenylist: [/^\/(?:firestore|api|admin)/, /^\/__/],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.protocol === 'https:' && url.hostname.includes('fonts.googleapis.com'),
+            urlPattern: ({ url }) => (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname.includes('fonts.googleapis.com'),
             handler: "CacheFirst",
             options: {
               cacheName: "google-fonts-cache",
@@ -68,7 +68,7 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            urlPattern: ({ url }) => url.hostname.includes('res.cloudinary.com'),
+            urlPattern: ({ url }) => (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname.includes('res.cloudinary.com'),
             handler: "CacheFirst",
             options: {
               cacheName: "cloudinary-images-cache",

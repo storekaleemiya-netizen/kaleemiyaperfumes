@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { User, X, LogOut, ShieldCheck, ShoppingBag, ArrowRight, Chrome, Mail, UserCircle } from "lucide-react";
+import { User, X, LogOut, ShieldCheck, ShoppingBag, ArrowRight, Chrome, Mail, UserCircle, Truck } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -135,16 +135,29 @@ const AccountDrawer = ({ isOpen, onClose }: AccountDrawerProps) => {
                    </div>
 
                    {/* Quick Links Nav */}
+                   <div className="space-y-4">
+                      <button 
+                         onClick={() => { onClose(); navigate("/my-orders"); }}
+                         className="w-full flex items-center justify-between p-6 bg-white border border-[#310101]/10 text-[#310101] rounded-[30px] shadow-sm hover:border-[#310101]/30 hover:scale-[1.02] active:scale-95 transition-all group"
+                      >
+                         <div className="flex items-center gap-4">
+                            <ShoppingBag className="w-6 h-6 text-[#B0843D]" />
+                            <span className="font-black uppercase tracking-widest text-[14px]">My Fragrance Legacy</span>
+                         </div>
+                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </button>
+
                       <button 
                         onClick={() => { onClose(); navigate("/track-order"); }}
                         className="w-full flex items-center justify-between p-6 bg-[#310101] text-[#E5D5C5] rounded-[30px] shadow-xl hover:scale-[1.02] active:scale-95 transition-all group"
                       >
                          <div className="flex items-center gap-4">
-                            <ShoppingBag className="w-6 h-6" />
-                            <span className="font-black uppercase tracking-widest text-[14px]">Track Active Orders</span>
+                            <Truck className="w-6 h-6" />
+                            <span className="font-black uppercase tracking-widest text-[14px]">Track Active Order</span>
                          </div>
                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </button>
+                   </div>
                 </div>
               )}
             </div>

@@ -35,6 +35,7 @@ import OfflineMessage from "./components/OfflineMessage.tsx";
 
 import AddToCartConfirmation from "./components/AddToCartConfirmation.tsx";
 import Checkout from "./pages/Checkout.tsx";
+import MyOrders from "./pages/MyOrders.tsx";
 
 import SEOHead from "./components/SEOHead.tsx";
 
@@ -177,6 +178,7 @@ const App = () => {
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/shop" element={<Shop />} />
+                  <Route path="/my-orders" element={<MyOrders />} />
                   <Route path="/attar" element={<Attar />} />
                   <Route path="/gift-sets" element={<GiftSets />} />
                   <Route path="/prayer-mats" element={<PrayerMats />} />

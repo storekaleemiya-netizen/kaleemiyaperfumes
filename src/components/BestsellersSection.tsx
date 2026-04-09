@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import ProductCard from "./ProductCard";
 import SectionHeading from "./SectionHeading";
@@ -63,12 +63,13 @@ const BestsellersSection = () => {
         </button>
       </div>
 
-      <div className="mt-12 flex justify-center">
+      <div className="mt-12 flex justify-center px-4 sm:px-0">
         <Link 
           to="/shop?category=ourbestseller" 
-          className="px-10 py-4 bg-[#310101] text-white rounded-full text-[11px] md:text-[13px] font-black uppercase tracking-[0.2em] hover:bg-[#B0843D] transition-all shadow-lg hover:shadow-xl active:scale-95 duration-300"
+          className="group relative w-full sm:w-auto min-w-[280px] max-w-xs sm:max-w-none px-10 py-4 bg-[#310101] border border-[#310101] hover:bg-transparent hover:text-[#310101] transition-all duration-500 rounded-full overflow-hidden flex items-center justify-center shadow-lg"
         >
-          View All Bestsellers
+          <div className="absolute inset-0 bg-white translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
+          <span className="relative text-[13px] font-black uppercase tracking-[0.2em] text-white group-hover:text-[#310101]">View All Bestsellers</span>
         </Link>
       </div>
     </section>

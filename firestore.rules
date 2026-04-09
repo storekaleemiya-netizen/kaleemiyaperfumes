@@ -81,6 +81,27 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // --- Orders Collection ---
+    match /orders/{orderId} {
+      // Users can only see and create their own orders
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid);
+      // Only admins can update or delete orders
+      allow update, delete: if isAdmin();
+    }
+
+    // --- News / Announcements ---
+    match /news/{newsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- Reviews ---
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow write: if isSignedIn(); // Logged in users can write reviews
+    }
+
     // --- Default Security Layer ---
     match /{document=**} {
       allow read, write: if isWhitelistedSuperAdmin();

@@ -168,7 +168,7 @@ const HeroSection = () => {
                     alt="Hero Slide"
                     loading="eager"
                     decoding="async"
-                    fetchPriority={index === 0 ? "high" : "auto"}
+                    fetchpriority={index === 0 ? "high" : "auto"}
                     className="relative w-full h-full object-contain z-[1]"
                     style={{ 
                       objectPosition: slide.objectPosition || "center",

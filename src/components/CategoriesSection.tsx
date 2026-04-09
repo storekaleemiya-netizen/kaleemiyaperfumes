@@ -44,6 +44,15 @@ const CategoriesSection = () => {
           </Link>
         ))}
       </div>
+      <div className="mt-12 flex justify-center px-4 sm:px-0">
+        <Link 
+          to="/shop" 
+          className="group relative w-full sm:w-auto min-w-[280px] max-w-xs sm:max-w-none px-10 py-4 bg-transparent border border-[#DEB87A]/30 hover:border-[#DEB87A] transition-all duration-500 rounded-full overflow-hidden flex items-center justify-center"
+        >
+          <div className="absolute inset-0 bg-[#DEB87A]/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+          <span className="relative text-[13px] font-black uppercase tracking-[0.3em] text-white">View All Collections</span>
+        </Link>
+      </div>
     </section>
   );
 };
