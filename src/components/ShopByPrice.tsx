@@ -64,7 +64,7 @@ const ShopByPrice = () => {
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {filteredProducts.map((p, i) => (
-              <div key={`${p.id}-${i}`} className="snap-center shrink-0 w-[280px] md:w-auto flex justify-center">
+              <div key={`${p.id}-${i}`} className="snap-center shrink-0 w-[85vw] sm:w-[280px] md:w-[300px] flex justify-center">
                 <ProductCard {...p} />
               </div>
             ))}

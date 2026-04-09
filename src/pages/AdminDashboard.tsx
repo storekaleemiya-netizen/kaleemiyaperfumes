@@ -28,7 +28,7 @@ import {
   Bell, Calendar, ArrowUpRight, TrendingUp,
   FileText, Newspaper, Eye, CreditCard, Star,
   CheckCircle, Clock, ChevronDown, Loader2,
-  Image, Send, Mail
+  Image, Send, Mail, Monitor, Smartphone
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -44,26 +44,32 @@ const AdminDashboard = () => {
     api: "Checking..."
   });
   const [galleryItems, setGalleryItems] = useState<any[]>([]);
+  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
+  const [mediaLibraryContext, setMediaLibraryContext] = useState<{ type: 'new' | 'edit', field: 'image' | 'extra', index?: number } | null>(null);
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
   const [newHeroSlide, setNewHeroSlide] = useState({
     titleFirstLine: "",
     titleHighlight: "",
     titleLastLine: "",
     subtitle: "",
-    buttonText: "",
+    buttonText: "Explore Collection",
     link: "/shop",
-    image: "",
+    image: "", // Desktop image
+    mobileImage: "", // Mobile image
     order: 0,
     objectPosition: "top",
     displayMode: "cover",
     backgroundColor: "#0a0a0a",
     imageScale: 1,
-    video: ""
+    video: "",
+    mobileVideo: ""
   });
   const [editingHeroSlide, setEditingHeroSlide] = useState<any>(null);
-  const [heroImagePreview, setHeroImagePreview] = useState<string | null>(null);
   const [isHeroUploading, setIsHeroUploading] = useState(false);
+  const [heroImagePreview, setHeroImagePreview] = useState<string | null>(null);
+  const [heroMobileImagePreview, setHeroMobileImagePreview] = useState<string | null>(null);
   const [heroVideoPreview, setHeroVideoPreview] = useState<string | null>(null);
+  const [heroMobileVideoPreview, setHeroMobileVideoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = onSnapshot(query(collection(db, "hero_slides"), orderBy("order", "asc")), (snap) => {
@@ -132,7 +138,7 @@ const AdminDashboard = () => {
         batch.set(newRef, { ...item, createdAt: new Date().toISOString() });
       });
       await batch.commit();
-      toast.success("Boutique Catalog Live!", { id: loadingId });
+      toast.success("Signature Catalog Live!", { id: loadingId });
     } catch (err: any) {
       console.error("Migration Failed:", err);
       toast.error(`Database Error: ${err.message}`, { id: loadingId });
@@ -411,7 +417,7 @@ const AdminDashboard = () => {
       <div className="min-h-screen bg-[#FDFCFB] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-12 h-12 text-[#310101] animate-spin opacity-20" />
-          <p className="text-[15px] font-black uppercase tracking-[0.3em] text-[#310101]/90">Initialising Boutique Engine...</p>
+          <p className="text-[15px] font-black uppercase tracking-[0.3em] text-[#310101]/90">Initialising Signature Engine...</p>
         </div>
       </div>
     );
@@ -651,7 +657,9 @@ const AdminDashboard = () => {
   const handleEditHeroClick = (slide: any) => {
     setEditingHeroSlide(slide);
     setHeroImagePreview(slide.image || null);
+    setHeroMobileImagePreview(slide.mobileImage || null);
     setHeroVideoPreview(slide.video || null);
+    setHeroMobileVideoPreview(slide.mobileVideo || null);
     // Scroll to form or open modal logic
     const element = document.getElementById("hero-admin-form");
     if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -661,33 +669,65 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleHeroMediaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHeroMediaChange = async (e: React.ChangeEvent<HTMLInputElement>, targetView: 'desktop' | 'mobile' = 'desktop') => {
     const file = e.target.files?.[0];
     if (!file) return;
     
     const isVideo = file.type.startsWith('video/');
-    if (isVideo) {
-      setHeroVideoPreview(URL.createObjectURL(file));
-      setHeroImagePreview(null);
+    const previewUrl = URL.createObjectURL(file);
+
+    // Validation removed as per user request for absolute flexibility
+    const isValid = true;
+
+    if (targetView === 'desktop') {
+      if (isVideo) {
+        setHeroVideoPreview(previewUrl);
+        setHeroImagePreview(null);
+      } else {
+        setHeroImagePreview(previewUrl);
+        setHeroVideoPreview(null);
+      }
     } else {
-      setHeroImagePreview(URL.createObjectURL(file));
-      setHeroVideoPreview(null);
+      if (isVideo) {
+        setHeroMobileVideoPreview(previewUrl);
+        setHeroMobileImagePreview(null);
+      } else {
+        setHeroMobileImagePreview(previewUrl);
+        setHeroMobileVideoPreview(null);
+      }
     }
 
     setIsHeroUploading(true);
-    const loadingId = toast.loading("Processing flagship media...");
+    const loadingId = toast.loading(`Synchronizing ${targetView} media...`);
     try {
       const { uploadToCloudinary } = await import("@/utils/cloudinary");
       const cloudUrl = await uploadToCloudinary(file);
       
-      const updateData = isVideo ? { video: cloudUrl, image: "" } : { image: cloudUrl, video: "" };
+      const updateData: any = {};
+      if (targetView === 'desktop') {
+        if (isVideo) {
+          updateData.video = cloudUrl;
+          updateData.image = "";
+        } else {
+          updateData.image = cloudUrl;
+          updateData.video = "";
+        }
+      } else {
+        if (isVideo) {
+          updateData.mobileVideo = cloudUrl;
+          updateData.mobileImage = "";
+        } else {
+          updateData.mobileImage = cloudUrl;
+          updateData.mobileVideo = "";
+        }
+      }
       
       if (editingHeroSlide) {
         setEditingHeroSlide((prev: any) => ({ ...prev, ...updateData }));
       } else {
         setNewHeroSlide((prev: any) => ({ ...prev, ...updateData }));
       }
-      toast.success("Flagship media synchronized!", { id: loadingId });
+      toast.success(`${targetView.charAt(0).toUpperCase() + targetView.slice(1)} media synchronized!`, { id: loadingId });
     } catch (err: any) {
       toast.error(err.message, { id: loadingId });
     } finally {
@@ -697,8 +737,9 @@ const AdminDashboard = () => {
 
   const handleAddHeroSlide = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newHeroSlide.image && !newHeroSlide.video) {
-      toast.error("Waiting for flagship media upload...");
+    const hasAnyMedia = newHeroSlide.image || newHeroSlide.video || newHeroSlide.mobileImage || newHeroSlide.mobileVideo;
+    if (!hasAnyMedia) {
+      toast.error("Waiting for flagship or mobile media upload...");
       return;
     }
     try {
@@ -712,15 +753,19 @@ const AdminDashboard = () => {
         buttonText: "",
         link: "/shop",
         image: "",
+        mobileImage: "",
         order: heroSlides.length,
         objectPosition: "top",
         displayMode: "cover",
         backgroundColor: "#0a0a0a",
         imageScale: 1,
-        video: ""
+        video: "",
+        mobileVideo: ""
       });
       setHeroImagePreview(null);
+      setHeroMobileImagePreview(null);
       setHeroVideoPreview(null);
+      setHeroMobileVideoPreview(null);
       toast.success("New Hero Slide Integrated!");
     } catch (err: any) {
       toast.error(err.message);
@@ -835,7 +880,7 @@ const AdminDashboard = () => {
     { title: "Dashboard", icon: LayoutDashboard },
     { title: "Manage Stock", icon: Package },
     { title: "Store Gallery", icon: Image },
-    { title: "Boutique News and Announcements", icon: Newspaper },
+    { title: "Signature News and Announcements", icon: Newspaper },
     { title: "New Desk", icon: PlusCircle }, 
     { title: "Orders", icon: ShoppingBag },
     { title: "Clientele", icon: Users },
@@ -889,13 +934,13 @@ const AdminDashboard = () => {
     if (!file) return;
     setVideoPreview(URL.createObjectURL(file));
     setIsUploading(true);
-    const loadingId = toast.loading("Processing boutique video...");
+    const loadingId = toast.loading("Processing Signature video...");
     try {
       const { uploadToCloudinary } = await import("@/utils/cloudinary");
       const cloudUrl = await uploadToCloudinary(file);
       if (editingProduct) setEditingProduct((prev: any) => ({ ...prev, video: cloudUrl }));
       else setNewProduct((prev: any) => ({ ...prev, video: cloudUrl }));
-      toast.success("Boutique video synchronized!", { id: loadingId });
+      toast.success("Signature video synchronized!", { id: loadingId });
     } catch (err: any) {
       toast.error(err.message, { id: loadingId });
     } finally {
@@ -995,7 +1040,7 @@ const AdminDashboard = () => {
       const cloudUrl = await uploadToCloudinary(file);
       await addDoc(collection(db, "gallery"), {
         src: cloudUrl,
-        alt: "Kaleemiya Boutique Story",
+        alt: "Kaleemiya Signature Story",
         createdAt: new Date().toISOString(),
         order: galleryItems.length
       });
@@ -1059,7 +1104,7 @@ const AdminDashboard = () => {
   };
 
   const handleDeleteReview = async (id: string) => {
-    if (confirm("Permanently remove this reflection from the boutique?")) {
+    if (confirm("Permanently remove this reflection from the Signature?")) {
       try {
         await deleteDoc(doc(db, "reviews", id));
         toast.success("Review removed.");
@@ -1070,6 +1115,37 @@ const AdminDashboard = () => {
   };
 
 
+  const handleSelectFromLibrary = (imageUrl: string) => {
+    if (!mediaLibraryContext) return;
+
+    if (mediaLibraryContext.type === 'new') {
+      if (mediaLibraryContext.field === 'image') {
+        setNewProduct(prev => ({ ...prev, image: imageUrl }));
+        setImagePreview(imageUrl);
+      } else if (mediaLibraryContext.field === 'extra' && typeof mediaLibraryContext.index === 'number') {
+        const newExtras = [...(newProduct.extraImages || ["", "", "", ""])];
+        newExtras[mediaLibraryContext.index] = imageUrl;
+        setNewProduct(prev => ({ ...prev, extraImages: newExtras }));
+      }
+    } else {
+      if (mediaLibraryContext.field === 'image') {
+        setEditingProduct((prev: any) => ({ ...prev, image: imageUrl }));
+      } else if (mediaLibraryContext.field === 'extra' && typeof mediaLibraryContext.index === 'number') {
+        const newExtras = [...(editingProduct.extraImages || ["", "", "", ""])];
+        newExtras[mediaLibraryContext.index] = imageUrl;
+        setEditingProduct((prev: any) => ({ ...prev, extraImages: newExtras }));
+      }
+    }
+    setIsMediaLibraryOpen(false);
+    setMediaLibraryContext(null);
+    toast.success("Media selected from library");
+  };
+
+  const allMediaUrls = Array.from(new Set([
+    ...(inventory?.map(p => p.image) || []),
+    ...(inventory?.flatMap(p => p.extraImages || []) || []),
+    ...(galleryItems?.map(g => g.src) || [])
+  ])).filter(url => url && typeof url === 'string' && url.startsWith('http'));
 
   return (
     <div className="min-h-screen bg-[#FDFCFB] flex font-sans overflow-x-hidden w-full relative">
@@ -1083,9 +1159,9 @@ const AdminDashboard = () => {
 
       {/* Sidebar */}
       <aside className={`
-        fixed inset-y-0 left-0 z-50 bg-[#310101] text-white transition-all duration-300 flex flex-col shrink-0 shadow-2xl
-        ${isSidebarOpen ? "translate-x-0 w-60" : "-translate-x-full lg:translate-x-0 lg:w-16"}
-        lg:relative
+        fixed inset-y-0 left-0 z-50 bg-[#310101] text-white transition-all duration-300 flex flex-col shrink-0 shadow-2xl h-screen
+        ${isSidebarOpen ? "translate-x-0 w-64" : "-translate-x-full lg:translate-x-0 lg:w-20"}
+        lg:sticky lg:top-0
       `}>
         <div className="p-4 border-b border-white/5 flex items-center justify-between">
           {isSidebarOpen && (
@@ -1099,7 +1175,7 @@ const AdminDashboard = () => {
             <Menu className="w-5 h-5 text-[#E5D5C5]" />
           </button>
         </div>
-        <nav className="flex-1 py-4 lg:py-6 px-3 lg:px-4 space-y-0.5 lg:space-y-1 overflow-y-auto">
+        <nav className="flex-1 py-4 lg:py-6 px-3 lg:px-4 space-y-0.5 lg:space-y-1 overflow-y-auto custom-scrollbar">
           {sidebarTabs.map((tab) => (
             <button 
               key={tab.title} 
@@ -1109,7 +1185,7 @@ const AdminDashboard = () => {
               <tab.icon className={`w-3.5 h-3.5 lg:w-5 lg:h-5 shrink-0 transition-colors ${activeTab === tab.title ? "text-[#310101]" : "text-[#E5D5C5]/60"}`} />
               {isSidebarOpen && (
                 <span className="text-[10px] sm:text-[11px] lg:text-[13px] font-black uppercase tracking-[0.05em] text-left leading-none">
-                  {tab.title === "Boutique News and Announcements" ? "Broadcasts" : tab.title}
+                  {tab.title === "Signature News and Announcements" ? "Broadcasts" : tab.title}
                 </span>
               )}
             </button>
@@ -1185,7 +1261,7 @@ const AdminDashboard = () => {
               title="Refresh Assets"
             >
                <Zap className="w-3.5 h-3.5 text-[#B0843D] group-hover:animate-bounce" />
-               <span className="text-[12px] font-black uppercase tracking-widest hidden md:block">Reload Cloud</span>
+               <span className="text-[12px] font-black uppercase tracking-widest hidden md:block">Reload System</span>
             </button>
             <div className="flex items-center gap-4 border-l pl-4 border-gray-100">
               <div className="text-right hidden sm:block">
@@ -1197,7 +1273,7 @@ const AdminDashboard = () => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 bg-[#FDFCFB]">
+        <div className="flex-1 overflow-y-auto p-4 bg-[#FDFCFB] custom-scrollbar">
 
           {activeTab === "Dashboard" && (
             <div className="space-y-6 md:space-y-10 max-w-7xl mx-auto pb-10">
@@ -1330,12 +1406,12 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {activeTab === "Boutique News and Announcements" && (
+          {activeTab === "Signature News and Announcements" && (
             <div className="space-y-12 pb-12 max-w-7xl mx-auto px-4">
               <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
                   <div className="space-y-4">
-                    <h2 className="text-5xl font-serif font-black text-black tracking-tighter italic">Boutique Broadcasts</h2>
-                    <p className="text-xl font-serif italic text-black/40 max-w-2xl">Publish special offers, Eid greetings, and boutique announcements to your clientele.</p>
+                    <h2 className="text-5xl font-serif font-black text-black tracking-tighter italic">Signature Broadcasts</h2>
+                    <p className="text-xl font-serif italic text-black/40 max-w-2xl">Publish special offers, Eid greetings, and Signature announcements to your clientele.</p>
                   </div>
                   <button onClick={() => setIsNewsModalOpen(true)} className="bg-[#310101] text-[#E5D5C5] px-12 py-7 rounded-[40px] font-black uppercase text-[14px] shadow-2xl hover:scale-105 transition-all">Broadcast New Offer</button>
               </div>
@@ -1391,7 +1467,7 @@ const AdminDashboard = () => {
               <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
                   <div className="space-y-4">
                     <h2 className="text-5xl font-serif font-black text-black tracking-tighter italic">Review Terminal</h2>
-                    <p className="text-xl font-serif italic text-black/40 max-w-2xl">Monitor and manage the shared experiences of your clientele. Every reflection counts toward your boutique's excellence.</p>
+                    <p className="text-xl font-serif italic text-black/40 max-w-2xl">Monitor and manage the shared experiences of your clientele. Every reflection counts toward your Signature's excellence.</p>
                   </div>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
@@ -1634,7 +1710,7 @@ const AdminDashboard = () => {
             <div className="space-y-16 pb-32 max-w-7xl mx-auto px-4">
               <div className="flex flex-col md:flex-row justify-between items-end gap-10">
                  <div className="space-y-4">
-                    <h2 className="text-5xl font-serif font-black text-black tracking-tighter italic">Boutique Clientele</h2>
+                    <h2 className="text-5xl font-serif font-black text-black tracking-tighter italic">Signature Clientele</h2>
                     <p className="text-xl font-serif italic text-black/40">Management of your exclusive community and their shopping profiles.</p>
                  </div>
                  <div className="bg-white px-8 py-5 rounded-[25px] border shadow-sm">
@@ -1814,7 +1890,7 @@ const AdminDashboard = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 md:p-8 rounded-[30px] md:rounded-[40px] border shadow-sm">
                    <div className="space-y-1">
                       <h2 className="text-xl md:text-3xl font-serif font-black italic">World of Kaleemiya</h2>
-                      <p className="text-[11px] md:text-[13px] font-black uppercase tracking-[0.2em] opacity-40 italic">Manage Boutique Brand Story Images</p>
+                      <p className="text-[11px] md:text-[13px] font-black uppercase tracking-[0.2em] opacity-40 italic">Manage Signature Brand Story Images</p>
                    </div>
                    <div className="relative group overflow-hidden">
                       <button disabled={isUploading} className="bg-[#B0843D] text-white w-full sm:w-auto px-6 md:px-10 py-3 md:py-4 rounded-full text-[11px] md:text-[14px] font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-[#B0843D]/20 hover:bg-[#310101] active:scale-95 transition-all">
@@ -2129,6 +2205,13 @@ const AdminDashboard = () => {
                       <div className="relative aspect-[4/3] bg-gray-50 rounded-2xl md:rounded-3xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden group">
                          {imagePreview ? <img src={imagePreview} className="w-full h-full object-contain" /> : <div className="text-center"><PlusCircle className="w-8 h-8 text-black/10 mx-auto mb-2" /><p className="font-serif italic opacity-30 text-base">Select Asset</p></div>}
                          <input type="file" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                         <button 
+                           type="button"
+                           onClick={() => { setMediaLibraryContext({ type: 'new', field: 'image' }); setIsMediaLibraryOpen(true); }}
+                           className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-[#B0843D] transition-all z-10"
+                         >
+                            Library
+                         </button>
                       </div>
                    </div>
                    <div className="space-y-3">
@@ -2142,6 +2225,32 @@ const AdminDashboard = () => {
                          <input type="file" accept="video/*" onChange={handleVideoChange} className="absolute inset-0 opacity-0 cursor-pointer" />
                       </div>
                    </div>
+                </div>
+ 
+                <div className="space-y-4">
+                   <label className="text-[12px] font-black uppercase text-[#B0843D] tracking-widest">Optional Gallery (Extra Images)</label>
+                   <div className="grid grid-cols-4 gap-3">
+                     {[0, 1, 2, 3].map((idx) => (
+                       <div key={idx} className="relative aspect-square bg-gray-50 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden group">
+                         {newProduct.extraImages?.[idx] ? (
+                           <img src={newProduct.extraImages[idx]} className="w-full h-full object-cover" alt={`Gallery ${idx + 1}`} />
+                         ) : (
+                           <div className="text-center p-1 opacity-20 group-hover:opacity-100 transition-opacity">
+                             <PlusCircle className="w-6 h-6 mx-auto" />
+                           </div>
+                         )}
+                         <input type="file" onChange={(e) => handleExtraImageChange(e, idx)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                         <button 
+                           type="button"
+                           onClick={() => { setMediaLibraryContext({ type: 'new', field: 'extra', index: idx }); setIsMediaLibraryOpen(true); }}
+                           className="absolute bottom-1 right-1 bg-black/40 backdrop-blur-md text-white p-1 rounded-md text-[8px] font-black uppercase hover:bg-[#B0843D] transition-all z-10 opacity-0 group-hover:opacity-100"
+                         >
+                            Lib
+                         </button>
+                       </div>
+                     ))}
+                   </div>
+                   <p className="text-[10px] font-black uppercase opacity-20 tracking-widest italic">These appear as secondary thumbnails on the product page.</p>
                 </div>
 
                 <button type="submit" disabled={isUploading} className="w-full bg-[#B0843D] text-white py-5 md:py-7 rounded-2xl md:rounded-3xl font-black uppercase text-[13px] md:text-[14px] shadow-xl hover:scale-[1.01] active:scale-95 transition-all">
@@ -2173,20 +2282,20 @@ const AdminDashboard = () => {
                     </div>
                     <form onSubmit={editingHeroSlide ? handleUpdateHeroSlide : handleAddHeroSlide} className="space-y-6">
                       <div className="space-y-4">
-                        <label className="text-[12px] font-black uppercase text-[#B0843D]">Title Line 1</label>
-                        <input required value={editingHeroSlide ? editingHeroSlide.titleFirstLine : newHeroSlide.titleFirstLine} onChange={e => editingHeroSlide ? setEditingHeroSlide({...editingHeroSlide, titleFirstLine: e.target.value}) : setNewHeroSlide({...newHeroSlide, titleFirstLine: e.target.value})} className="w-full p-5 bg-gray-50 rounded-2xl font-bold italic outline-none focus:ring-4 focus:ring-[#B0843D]/5" />
+                        <label className="text-[12px] font-black uppercase text-[#B0843D]">Title Line 1 (Optional)</label>
+                        <input value={editingHeroSlide ? editingHeroSlide.titleFirstLine : newHeroSlide.titleFirstLine} onChange={e => editingHeroSlide ? setEditingHeroSlide({...editingHeroSlide, titleFirstLine: e.target.value}) : setNewHeroSlide({...newHeroSlide, titleFirstLine: e.target.value})} className="w-full p-5 bg-gray-50 rounded-2xl font-bold italic outline-none focus:ring-4 focus:ring-[#B0843D]/5" />
                       </div>
                       <div className="space-y-4">
-                        <label className="text-[12px] font-black uppercase text-[#B0843D]">Gold Highlight Text</label>
-                        <input required value={editingHeroSlide ? editingHeroSlide.titleHighlight : newHeroSlide.titleHighlight} onChange={e => editingHeroSlide ? setEditingHeroSlide({...editingHeroSlide, titleHighlight: e.target.value}) : setNewHeroSlide({...newHeroSlide, titleHighlight: e.target.value})} className="w-full p-5 bg-gray-50 rounded-2xl font-bold italic outline-none focus:ring-4 focus:ring-[#B0843D]/5" />
+                        <label className="text-[12px] font-black uppercase text-[#B0843D]">Gold Highlight Text (Optional)</label>
+                        <input value={editingHeroSlide ? editingHeroSlide.titleHighlight : newHeroSlide.titleHighlight} onChange={e => editingHeroSlide ? setEditingHeroSlide({...editingHeroSlide, titleHighlight: e.target.value}) : setNewHeroSlide({...newHeroSlide, titleHighlight: e.target.value})} className="w-full p-5 bg-gray-50 rounded-2xl font-bold italic outline-none focus:ring-4 focus:ring-[#B0843D]/5" />
                       </div>
                       <div className="space-y-4">
-                        <label className="text-[12px] font-black uppercase text-[#B0843D]">Title Line 2</label>
-                        <input required value={editingHeroSlide ? editingHeroSlide.titleLastLine : newHeroSlide.titleLastLine} onChange={e => editingHeroSlide ? setEditingHeroSlide({...editingHeroSlide, titleLastLine: e.target.value}) : setNewHeroSlide({...newHeroSlide, titleLastLine: e.target.value})} className="w-full p-5 bg-gray-50 rounded-2xl font-bold italic outline-none focus:ring-4 focus:ring-[#B0843D]/5" />
+                        <label className="text-[12px] font-black uppercase text-[#B0843D]">Title Line 2 (Optional)</label>
+                        <input value={editingHeroSlide ? editingHeroSlide.titleLastLine : newHeroSlide.titleLastLine} onChange={e => editingHeroSlide ? setEditingHeroSlide({...editingHeroSlide, titleLastLine: e.target.value}) : setNewHeroSlide({...newHeroSlide, titleLastLine: e.target.value})} className="w-full p-5 bg-gray-50 rounded-2xl font-bold italic outline-none focus:ring-4 focus:ring-[#B0843D]/5" />
                       </div>
                       <div className="space-y-4">
-                        <label className="text-[12px] font-black uppercase text-[#B0843D]">Aromatic Subtitle</label>
-                        <textarea required value={editingHeroSlide ? editingHeroSlide.subtitle : newHeroSlide.subtitle} onChange={e => editingHeroSlide ? setEditingHeroSlide({...editingHeroSlide, subtitle: e.target.value}) : setNewHeroSlide({...newHeroSlide, subtitle: e.target.value})} className="w-full h-32 p-5 bg-gray-50 rounded-2xl font-medium italic outline-none resize-none" />
+                        <label className="text-[12px] font-black uppercase text-[#B0843D]">Aromatic Subtitle (Optional)</label>
+                        <textarea value={editingHeroSlide ? editingHeroSlide.subtitle : newHeroSlide.subtitle} onChange={e => editingHeroSlide ? setEditingHeroSlide({...editingHeroSlide, subtitle: e.target.value}) : setNewHeroSlide({...newHeroSlide, subtitle: e.target.value})} className="w-full h-32 p-5 bg-gray-50 rounded-2xl font-medium italic outline-none resize-none" />
                       </div>
                       <div className="space-y-4">
                         <label className="text-[12px] font-black uppercase text-[#B0843D]">Button Text & Link</label>
@@ -2229,21 +2338,38 @@ const AdminDashboard = () => {
                         <p className="text-[10px] uppercase font-black text-black/20 italic tracking-tighter">Pro Tip: Zoom Out + Match Background = 100% Professional Look.</p>
                       </div>
 
-                      <div className="space-y-4">
-                        <label className="text-[12px] font-black uppercase text-[#B0843D]">Flagship Media Asset (Image or Video)</label>
-                        <div className="relative aspect-video bg-gray-50 rounded-[30px] border-2 border-dashed border-[#B0843D]/20 flex flex-col items-center justify-center overflow-hidden group">
-                           {heroImagePreview ? (
-                              <img src={heroImagePreview} className="w-full h-full object-cover" style={{ objectPosition: (editingHeroSlide?.objectPosition || newHeroSlide.objectPosition) }} />
-                           ) : (
-                              <div className="text-center opacity-30 group-hover:opacity-100 transition-opacity">
-                                 <PlusCircle className="w-10 h-10 mx-auto mb-2 text-[#B0843D]" />
-                                 <p className="text-[10px] uppercase font-black tracking-widest text-[#B0843D]">Elite Upload</p>
-                              </div>
-                           )}
-                           <input type="file" onChange={handleHeroMediaChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <label className="text-[12px] font-black uppercase text-[#B0843D]">Desktop Asset (Wide View)</label>
+                          <div className="relative aspect-video bg-gray-50 rounded-[30px] border-2 border-dashed border-[#B0843D]/20 flex flex-col items-center justify-center overflow-hidden group">
+                             {heroImagePreview || heroVideoPreview ? (
+                                heroVideoPreview ? <video src={heroVideoPreview} className="w-full h-full object-cover" muted autoPlay loop /> : <img src={heroImagePreview!} className="w-full h-full object-cover" />
+                             ) : (
+                                <div className="text-center opacity-30 group-hover:opacity-100 transition-opacity">
+                                   <Monitor className="w-8 h-8 mx-auto mb-2 text-[#B0843D]" />
+                                   <p className="text-[10px] uppercase font-black tracking-widest text-[#B0843D]">Desktop Upload</p>
+                                </div>
+                             )}
+                             <input type="file" onChange={(e) => handleHeroMediaChange(e, 'desktop')} className="absolute inset-0 opacity-0 cursor-pointer" />
+                          </div>
                         </div>
-                        {isHeroUploading && <p className="text-[10px] font-black uppercase text-[#B0843D] animate-pulse">Syncing with High-Fidelity Cloud...</p>}
+
+                        <div className="space-y-4">
+                          <label className="text-[12px] font-black uppercase text-[#B0843D]">Mobile Asset (Optional Portrait)</label>
+                          <div className="relative aspect-[9/16] bg-gray-50 rounded-[30px] border-2 border-dashed border-[#B0843D]/20 flex flex-col items-center justify-center overflow-hidden group max-h-[300px] mx-auto w-full">
+                             {heroMobileImagePreview || heroMobileVideoPreview ? (
+                                heroMobileVideoPreview ? <video src={heroMobileVideoPreview} className="w-full h-full object-cover" muted autoPlay loop /> : <img src={heroMobileImagePreview!} className="w-full h-full object-cover" />
+                             ) : (
+                                <div className="text-center opacity-30 group-hover:opacity-100 transition-opacity">
+                                   <Smartphone className="w-8 h-8 mx-auto mb-2 text-[#B0843D]" />
+                                   <p className="text-[10px] uppercase font-black tracking-widest text-[#B0843D]">Mobile Upload</p>
+                                </div>
+                             )}
+                             <input type="file" onChange={(e) => handleHeroMediaChange(e, 'mobile')} className="absolute inset-0 opacity-0 cursor-pointer" />
+                          </div>
+                        </div>
                       </div>
+                      {isHeroUploading && <p className="text-[10px] font-black uppercase text-[#B0843D] animate-pulse text-center">Syncing with High-Fidelity Cloud...</p>}
 
                       <button type="submit" disabled={isHeroUploading} className="w-full bg-[#B0843D] text-white py-6 rounded-3xl font-black uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all mt-4 disabled:opacity-50">
                         {isHeroUploading ? "Syncing Media..." : (editingHeroSlide ? "Update Masterpiece" : "Integrate Slide")}
@@ -2305,10 +2431,10 @@ const AdminDashboard = () => {
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
                   <div className="bg-white p-6 md:p-12 rounded-[40px] md:rounded-[60px] shadow-sm border border-[#E5D5C5]/30 space-y-8 md:space-y-10 relative overflow-hidden">
                      <div className="absolute top-0 right-0 w-40 h-40 bg-[#310101]/5 rounded-full -mr-20 -mt-20 blur-2xl"></div>
-                     <h3 className="text-2xl md:text-3xl font-serif font-black italic text-[#310101]">Boutique Profile</h3>
+                     <h3 className="text-2xl md:text-3xl font-serif font-black italic text-[#310101]">Signature Profile</h3>
                      <div className="space-y-8 relative z-10">
                         <div className="space-y-3">
-                           <label className="text-[14px] font-black uppercase text-[#B0843D] tracking-widest">Boutique Name</label>
+                           <label className="text-[14px] font-black uppercase text-[#B0843D] tracking-widest">Signature Name</label>
                            <input value={storeSettings.name || ""} onChange={e => setStoreSettings({...storeSettings, name: e.target.value})} className="w-full p-6 bg-gray-50 rounded-3xl font-bold outline-none focus:ring-4 focus:ring-[#B0843D]/10 transition-all border-none" />
                         </div>
                         <div className="space-y-3">
@@ -2349,7 +2475,7 @@ const AdminDashboard = () => {
                            </div>
                         </div>
 
-                        <button onClick={() => toast.success("Boutique Profile Synchronized")} className="w-full bg-[#310101] text-white py-6 rounded-[30px] font-black uppercase text-[14px] shadow-xl tracking-[0.2em] hover:scale-[1.02] active:scale-95 transition-all mt-4 border border-[#310101]/20 group">
+                        <button onClick={() => toast.success("Signature Profile Synchronized")} className="w-full bg-[#310101] text-white py-6 rounded-[30px] font-black uppercase text-[14px] shadow-xl tracking-[0.2em] hover:scale-[1.02] active:scale-95 transition-all mt-4 border border-[#310101]/20 group">
                            <span className="group-hover:text-[#B0843D] transition-colors">Update Configuration</span>
                         </button>
                      </div>
@@ -2548,7 +2674,7 @@ const AdminDashboard = () => {
                       </div>
                       <div>
                          <h2 className="text-4xl font-serif font-black uppercase italic tracking-tighter">Broadcast Desk</h2>
-                         <p className="text-[14px] font-black uppercase tracking-[0.3em] opacity-50">Publish announcements to your boutique clientele</p>
+                         <p className="text-[14px] font-black uppercase tracking-[0.3em] opacity-50">Publish announcements to your Signature clientele</p>
                       </div>
                    </div>
                    <button onClick={() => {
@@ -2745,6 +2871,13 @@ const AdminDashboard = () => {
                                  <div className="text-center"><PlusCircle className="w-10 h-10 text-black/10 mx-auto mb-2" /><p className="font-serif italic opacity-30 text-lg">Select asset</p></div>
                               )}
                               <input type="file" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                              <button 
+                                 type="button"
+                                 onClick={() => { setMediaLibraryContext({ type: 'edit', field: 'image' }); setIsMediaLibraryOpen(true); }}
+                                 className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-[#B0843D] transition-all z-10"
+                              >
+                                 Library
+                              </button>
                            </div>
                         </div>
                         <div className="space-y-2.5">
@@ -2775,6 +2908,13 @@ const AdminDashboard = () => {
                                 </div>
                               )}
                               <input type="file" onChange={(e) => handleExtraImageChange(e, idx)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                              <button 
+                                 type="button"
+                                 onClick={() => { setMediaLibraryContext({ type: 'edit', field: 'extra', index: idx }); setIsMediaLibraryOpen(true); }}
+                                 className="absolute bottom-1 right-1 bg-black/40 backdrop-blur-md text-white p-1 rounded-md text-[8px] font-black uppercase hover:bg-[#B0843D] transition-all z-10 opacity-0 group-hover:opacity-100"
+                               >
+                                  Lib
+                               </button>
                             </div>
                           ))}
                         </div>
@@ -2816,6 +2956,43 @@ const AdminDashboard = () => {
           </div>
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+         {isMediaLibraryOpen && (
+           <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-[40px] shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+                <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-[#1A1A1A] text-white">
+                   <div>
+                      <h3 className="text-2xl font-serif font-black italic tracking-tighter">Signature Media Library</h3>
+                      <p className="text-[10px] uppercase font-black tracking-widest text-[#B0843D]">Reuse existing Signature assets</p>
+                   </div>
+                   <button onClick={() => setIsMediaLibraryOpen(false)} className="p-3 hover:bg-white/10 rounded-full transition-all"><X className="w-6 h-6" /></button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-gray-50 text-black">
+                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      {allMediaUrls.map((url, idx) => (
+                        <div 
+                          key={url + idx} 
+                          onClick={() => handleSelectFromLibrary(url)}
+                          className="group relative aspect-square bg-white rounded-2xl overflow-hidden border-2 border-transparent hover:border-[#B0843D] cursor-pointer shadow-sm hover:shadow-xl transition-all"
+                        >
+                           <img src={url} className="w-full h-full object-cover transition-transform group-hover:scale-110" alt="Cloud Asset" />
+                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
+                              <div className="bg-white text-black text-[10px] font-black uppercase px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all">Select</div>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+                
+                <div className="p-6 border-t border-gray-100 bg-white text-center">
+                   <p className="text-[11px] font-black uppercase text-black/30 tracking-widest">Total Assets Available: {allMediaUrls.length}</p>
+                </div>
+             </motion.div>
+           </div>
+         )}
+       </AnimatePresence>
     </div>
   );
 };

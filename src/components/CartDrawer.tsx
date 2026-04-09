@@ -45,7 +45,7 @@ const CartDrawer = () => {
 
   const handleCheckout = () => {
     if (!user) {
-      toast.info("Please sign-in to complete your boutique order.");
+      toast.info("Please sign-in to complete your Signature order.");
       openLogin();
       return;
     }
@@ -74,7 +74,7 @@ const CartDrawer = () => {
         <SheetHeader className="px-8 py-6 border-b border-[#310101]/5 bg-white/80 backdrop-blur-md sticky top-0 z-50">
           <div className="flex flex-col items-center">
             <SheetTitle className="font-serif text-[26px] italic font-black text-[#310101] tracking-tight">
-               My Boutique Bag
+               My Signature Bag
             </SheetTitle>
             <div className="flex items-center gap-3 mt-1.5">
                <div className="h-px w-6 bg-[#B0843D]/30" />
@@ -142,7 +142,7 @@ const CartDrawer = () => {
                         <Tag className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[13px] font-black text-white uppercase tracking-wider">Online Boutique</span>
+                        <span className="text-[13px] font-black text-white uppercase tracking-wider">Online Signature</span>
                         <span className="text-[10px] font-bold text-[#DEB87A] opacity-80 uppercase tracking-widest">Complimentary Privilege</span>
                       </div>
                    </div>
@@ -204,7 +204,7 @@ const CartDrawer = () => {
                   ))}
                 </div>
 
-                {/* Refined Recommendations - Professional Boutique Style */}
+                {/* Refined Recommendations - Professional Signature Style */}
                 {recommendations.length > 0 && (
                   <div className="pt-10 space-y-6">
                     <div className="flex items-center justify-between px-1">
@@ -270,7 +270,7 @@ const CartDrawer = () => {
           )}
         </div>
 
-        {/* Professional Boutique Footer - Glassmorphism & High Contrast */}
+        {/* Professional Signature Footer - Glassmorphism & High Contrast */}
         {cart.length > 0 && !isSuccess && (
           <div className="p-8 pb-10 bg-white border-t border-gray-100 shadow-[0_-20px_40px_rgba(0,0,0,0.02)] space-y-8 mt-auto z-50">
             <div className="space-y-4">

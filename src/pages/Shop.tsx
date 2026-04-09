@@ -24,7 +24,7 @@ interface ShopProps {
 }
 
 const Shop = ({ 
-  title = "Kaleemiya Boutique", 
+  title = "Kaleemiya Signature", 
   subtitle = "Browse our complete catalog — from rare Attars and premium Ouds to curated Gift Sets and Prayer Mats.",
   initialProductCategory = "all",
   extraCategories = [],
@@ -115,9 +115,9 @@ const Shop = ({
       const lowerCat = activeCategory.toLowerCase();
       const normalizedTarget = lowerCat.replace(/\s+/g, "");
       
-      if (lowerCat === "our bestseller") {
+      if (normalizedTarget === "ourbestseller") {
         filtered = filtered.filter(p => p.isBestseller === true);
-      } else if (lowerCat === "new arrival") {
+      } else if (normalizedTarget === "newarrival") {
         filtered = filtered.filter(p => p.isNew === true);
       } else {
         // Generalized inclusive filter for any category/subcategory name
@@ -222,7 +222,7 @@ const Shop = ({
   if (discountParam) {
     displayTitle = `${discountParam}% OFF Special Collection`;
     displaySubtitle = `Handpicked selections from across our catalog — all reaching up to ${discountParam}% or more in savings.`;
-  } else if (title === "Kaleemiya Boutique" && activeCategory && activeCategory !== "all") {
+  } else if (title === "Kaleemiya Signature" && activeCategory && activeCategory !== "all") {
     // Default — capitalize
     displayTitle = activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1);
     displaySubtitle = `Explore our curated selection of ${displayTitle}.`;
@@ -258,7 +258,7 @@ const Shop = ({
       displaySubtitle = "The most loved fragrances and products at Kaleemiya — handpicked by our customers.";
     } else if (cat === "newarrival") {
       displayTitle = "New Arrivals";
-      displaySubtitle = "Fresh additions to our boutique — be the first to discover the newest scents and collections.";
+      displaySubtitle = "Fresh additions to our Signature — be the first to discover the newest scents and collections.";
     }
   }
 

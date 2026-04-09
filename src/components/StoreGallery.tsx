@@ -24,16 +24,16 @@ import store19 from "@/assets/store-19.jpg";
 import store20 from "@/assets/store-20.jpg";
 
 const DEFAULT_GALLERY = [
-  { src: store15, alt: "Kaleemiya Boutique Front View" },
-  { src: store16, alt: "Boutique Shop Counter with Jars" },
+  { src: store15, alt: "Kaleemiya Signature Front View" },
+  { src: store16, alt: "Signature Shop Counter with Jars" },
   { src: store17, alt: "Ornate Mosque & Kaaba Models" },
   { src: store18, alt: "Crystal Arabic Calligraphy" },
   { src: store19, alt: "Decorative Star Trays" },
   { src: store20, alt: "Backlit Perfume Display Shelves" },
   { src: store10, alt: "Premium Perfume & Gifting" },
-  { src: store11, alt: "Elegant Floral Boutique Decor" },
+  { src: store11, alt: "Elegant Floral Signature Decor" },
   { src: store14, alt: "Artisan Fragrance Wall Dispensers" },
-  { src: store12, alt: "Wide Boutique Side View" },
+  { src: store12, alt: "Wide Signature Side View" },
   { src: store2, alt: "Luxury Perfume Collection" },
   { src: store3, alt: "Artisan Fragrances" },
   { src: store5, alt: "Exquisite Fragrance Oils" },
@@ -49,7 +49,7 @@ const StoreGallery = () => {
       if (!snap.empty) {
         const fetched = snap.docs.map(doc => ({ 
           src: doc.data().src, 
-          alt: doc.data().alt || "Kaleemiya Boutique" 
+          alt: doc.data().alt || "Kaleemiya Signature" 
         }));
         
         // Sorting by Firestore order or date if available
@@ -112,7 +112,7 @@ const StoreGallery = () => {
             viewport={{ once: true }}
             className="text-[#B0843D] font-sans text-sm uppercase tracking-[0.3em] font-bold mb-4 block"
           >
-            Our Boutique
+            Our Signature
           </motion.span>
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}

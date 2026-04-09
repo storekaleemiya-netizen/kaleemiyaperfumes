@@ -40,7 +40,7 @@ export interface Product {
     video?: string;
 }
 
-export const BOUTIQUE_FALLBACKS: Product[] = [];
+export const Signature_FALLBACKS: Product[] = [];
 
 export const useProducts = (pageSize = 20) => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -68,7 +68,7 @@ export const useProducts = (pageSize = 20) => {
             setLoading(false);
         }, (error) => {
             console.error("Error fetching products:", error);
-            setProducts(BOUTIQUE_FALLBACKS);
+            setProducts(Signature_FALLBACKS);
             setLoading(false);
         });
 

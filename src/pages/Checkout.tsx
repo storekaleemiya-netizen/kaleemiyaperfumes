@@ -299,7 +299,7 @@ const Checkout = () => {
                 <div className="flex items-center gap-4">
                    <User className="w-6 h-6 text-[#B0843D]" />
                    <h3 className="font-serif font-black italic text-[22px] text-black">
-                     {user ? `Welcome, ${userName}` : "Boutique Login"}
+                     {user ? `Welcome, ${userName}` : "Signature Login"}
                    </h3>
                 </div>
                 <div className="relative">

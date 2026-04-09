@@ -94,7 +94,7 @@ const AdminRequest = () => {
             </div>
             <div className="space-y-2">
               <h1 className="text-4xl font-serif font-black text-black">Admin Access Request</h1>
-              <p className="text-black/50 font-bold uppercase tracking-widest text-[15px]">Boutique Authority Portal</p>
+              <p className="text-black/50 font-bold uppercase tracking-widest text-[15px]">Signature Authority Portal</p>
             </div>
           </div>
 

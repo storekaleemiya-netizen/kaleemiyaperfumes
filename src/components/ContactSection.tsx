@@ -35,7 +35,7 @@ const ContactSection = () => {
   return (
     <section id="contact" className="py-24 overflow-hidden bg-background relative z-10">
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20">
-        <SectionHeading title="Contact Us" subtitle="Visit our physical boutique or reach out for inquiries." />
+        <SectionHeading title="Contact Us" subtitle="Visit our physical Signature or reach out for inquiries." />
       </div>
       
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20 py-10">
@@ -61,7 +61,7 @@ const ContactSection = () => {
                     <MapPin className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-serif text-base text-foreground mb-1">Our Boutique</h4>
+                    <h4 className="font-serif text-base text-foreground mb-1">Our Signature</h4>
                     <address className="not-italic text-muted-foreground font-sans text-sm leading-relaxed">
                       Govt Hospital, 11-2-828, Niyaz Heights,<br />
                       Mallepally Road, Jamia Masjid Rd, Hyderabad, 500001

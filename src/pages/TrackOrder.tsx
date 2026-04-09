@@ -50,7 +50,7 @@ const TrackOrder = () => {
           ...orderData,
           history
         });
-        toast.success("Boutique Order Found");
+        toast.success("Signature Order Found");
       }
     } catch (err: any) {
       toast.error("Lookup failed. Please try again later.");
@@ -70,7 +70,7 @@ const TrackOrder = () => {
            transition={{ duration: 0.8 }}
            className="text-center"
         >
-          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-[#310101] mb-6 px-4">Track Your Boutique Order</h1>
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-[#310101] mb-6 px-4">Track Your Signature Order</h1>
           <p className="text-[#310101] font-sans text-sm mb-12 max-w-lg mx-auto">
              Enter your order ID below to view the current status of your premium fragrance shipment.
           </p>

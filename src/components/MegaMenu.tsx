@@ -128,7 +128,7 @@ const MegaMenu = ({ isOpen, onMouseEnter, onMouseLeave, onClose }: MegaMenuProps
                 onClick={onClose}
                 className="group flex items-center gap-4 bg-[#310101] text-[#E5D5C5] px-10 py-5 rounded-full shadow-2xl hover:scale-105 transition-all duration-500"
               >
-                <span className="text-[14px] font-black uppercase tracking-[0.2em]">Explore Entire Boutique</span>
+                <span className="text-[14px] font-black uppercase tracking-[0.2em]">Explore Entire Signature</span>
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>

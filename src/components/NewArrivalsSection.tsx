@@ -35,7 +35,7 @@ const NewArrivalsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.6, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="snap-center shrink-0 w-[280px] md:w-[320px]"
+              className="snap-center shrink-0 w-[85vw] sm:w-[280px] md:w-[300px]"
             >
               <ProductCard {...p} category={p.category} subCategory={p.subCategory} />
             </motion.div>

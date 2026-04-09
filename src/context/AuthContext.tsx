@@ -22,9 +22,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const SUPER_ADMIN_EMAILS = [
-  "kaleemiya.perfumes@gmail.com",
-  "tanveersultna84@gmail.com",
-  "tanveersultana84@gmail.com"
+  "storekaleemiya@gmail.com"
 ]; // List of super admin emails (all should be lowercase)
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

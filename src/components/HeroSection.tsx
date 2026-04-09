@@ -1,15 +1,31 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import heroPerfume from "@/assets/hero-perfume.jpg";
+
+const DRAG_THRESHOLD = 50;
 
 const HeroSection = () => {
   const [slides, setSlides] = useState<any[]>([]);
+  const [activeSlides, setActiveSlides] = useState<any[]>([]);
+  // 'current' is the logical index in activeSlides (0 to length-1)
   const [current, setCurrent] = useState(0);
+  // 'trackIndex' is the physical index in the displaySlides array
+  const [trackIndex, setTrackIndex] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  const controls = useAnimation();
+  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const q = query(collection(db, "hero_slides"), orderBy("order", "asc"));
@@ -20,169 +36,169 @@ const HeroSection = () => {
     return () => unsub();
   }, []);
 
-  const fixedLeadSlide = {
-    id: "essence-of-purity-lead",
-    image: heroPerfume,
-    displayMode: "contain",
-    titleFirstLine: "Experience the",
-    titleHighlight: "Essence",
-    titleLastLine: "of Purity",
-    subtitle: "Inspired by tradition, crafted with elegance. Pure attars and oud fragrances for the discerning soul.",
-    buttonText: "Explore Collection",
-    link: "/shop"
-  };
-
-  // Admin slides follow the fixed brand slide
-  const activeSlides = [fixedLeadSlide, ...slides];
-
   useEffect(() => {
-    if (activeSlides.length > 1) {
-      const timer = setInterval(() => {
-        setCurrent((prev) => (prev + 1) % activeSlides.length);
-      }, 7000);
-      return () => clearInterval(timer);
+    const filtered = slides.filter(slide => {
+      if (isMobile) return slide.mobileImage || slide.mobileVideo;
+      return slide.image || slide.video;
+    });
+    setActiveSlides(filtered);
+    // Reset to first slide on data change
+    if (filtered.length > 0) {
+      setTrackIndex(1);
+      setCurrent(0);
     }
+  }, [slides, isMobile]);
+
+  // The infinite track: [Last, Slide1, Slide2, ..., SlideN, First]
+  const displaySlides = activeSlides.length > 0 
+    ? [activeSlides[activeSlides.length - 1], ...activeSlides, activeSlides[0]]
+    : [];
+
+  const handleJump = useCallback((index: number) => {
+    setIsTransitioning(false);
+    setTrackIndex(index);
+    // When jumping, we map trackIndex to current logical index
+    if (index === 0) setCurrent(activeSlides.length - 1);
+    else if (index === activeSlides.length + 1) setCurrent(0);
+    else setCurrent(index - 1);
   }, [activeSlides.length]);
 
-  const handlePrev = () => {
-    setCurrent((prev) => (prev - 1 + activeSlides.length) % activeSlides.length);
+  const handleNext = useCallback(() => {
+    if (isTransitioning || activeSlides.length <= 1) return;
+    setIsTransitioning(true);
+    setTrackIndex(prev => prev + 1);
+    setCurrent(prev => (prev + 1) % activeSlides.length);
+  }, [isTransitioning, activeSlides.length]);
+
+  const handlePrev = useCallback(() => {
+    if (isTransitioning || activeSlides.length <= 1) return;
+    setIsTransitioning(true);
+    setTrackIndex(prev => prev - 1);
+    setCurrent(prev => (prev - 1 + activeSlides.length) % activeSlides.length);
+  }, [isTransitioning, activeSlides.length]);
+
+  useEffect(() => {
+    if (activeSlides.length > 1 && !isDragging) {
+      autoPlayRef.current = setInterval(handleNext, 7000);
+      return () => {
+        if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+      };
+    }
+  }, [handleNext, activeSlides.length, isDragging]);
+
+  const onTransitionEnd = () => {
+    setIsTransitioning(false);
+    if (trackIndex === 0) {
+      handleJump(activeSlides.length);
+    } else if (trackIndex === activeSlides.length + 1) {
+      handleJump(1);
+    }
   };
 
-  const handleNext = () => {
-    setCurrent((prev) => (prev + 1) % activeSlides.length);
+  const isVideo = (url: string) => {
+    if (!url) return false;
+    return url.toLowerCase().match(/\.(mp4|mov|webm|quicktime|m4v)$/) || url.includes("video/upload");
   };
 
-  const currentSlide = activeSlides[current] || activeSlides[0];
+  if (activeSlides.length === 0) return null;
+
+  const currentSlide = activeSlides[current];
 
   return (
-    <section 
-      style={{ backgroundColor: currentSlide.backgroundColor || "#0a0a0a" }}
-      className="relative w-full min-h-[75vh] md:min-h-[85vh] lg:min-h-[90vh] flex items-center overflow-hidden transition-colors duration-1000"
-    >
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={current}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute inset-0 z-0"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent z-[2]" />
-          
-          {currentSlide.displayMode === "contain" && (
-            <img
-              src={currentSlide.image}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-30 scale-110"
-              aria-hidden="true"
-            />
-          )}
+    <section className="relative w-full aspect-[4/5] md:aspect-auto md:h-[85vh] lg:h-[90vh] flex items-center overflow-hidden bg-black">
+      {/* Infinite Track */}
+      <motion.div
+        className="absolute inset-0 flex touch-pan-y"
+        animate={{ x: `-${trackIndex * 100}%` }}
+        transition={isTransitioning ? { duration: 0.8, ease: [0.16, 1, 0.3, 1] } : { duration: 0 }}
+        onAnimationComplete={onTransitionEnd}
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.4}
+        onDragStart={() => {
+          setIsDragging(true);
+          if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+        }}
+        onDragEnd={(_, info) => {
+          setIsDragging(false);
+          if (info.offset.x > DRAG_THRESHOLD) handlePrev();
+          else if (info.offset.x < -DRAG_THRESHOLD) handleNext();
+        }}
+      >
+        {displaySlides.map((slide, index) => {
+          const currentImg = isMobile ? (slide.mobileImage || slide.image) : (slide.image || slide.mobileImage);
+          const currentVid = isMobile ? (slide.mobileVideo || slide.video) : (slide.video || slide.mobileVideo);
 
-          {(currentSlide.video || (typeof currentSlide.image === 'string' && currentSlide.image.toLowerCase().match(/\.(mp4|mov|webm|quicktime)$|video\/upload/))) ? (
-            <motion.video
-              src={currentSlide.video || currentSlide.image}
-              autoPlay
-              muted
-              loop
-              playsInline
-              className={`relative w-full h-full ${currentSlide.displayMode === "contain" ? "object-contain" : "object-cover"} z-[1]`}
-              style={{ 
-                objectPosition: currentSlide.objectPosition || "center",
-                scale: currentSlide.imageScale || 1.1
-              }}
-              animate={{ scale: (currentSlide.imageScale || 1.1) * 1.03 }}
-              transition={{ duration: 12, ease: "linear" }}
-            />
-          ) : (
-            <motion.img
-              src={currentSlide.image}
-              alt="Hero Slide"
-              className={`relative w-full h-full ${currentSlide.displayMode === "contain" ? "object-contain" : "object-cover"} z-[1]`}
-              style={{ 
-                objectPosition: currentSlide.objectPosition || "center",
-                scale: currentSlide.imageScale || 1.1
-              }}
-              animate={{ scale: (currentSlide.imageScale || 1.1) * 1.03 }}
-              transition={{ duration: 12, ease: "linear" }}
-            />
-          )}
-        </motion.div>
-      </AnimatePresence>
+          return (
+            <div key={`${slide.id}-${index}`} className="relative min-w-full h-full flex items-center overflow-hidden">
+               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-[2]" />
+               {(currentVid || isVideo(currentImg)) ? (
+                  <video
+                    src={currentVid || currentImg}
+                    autoPlay muted loop playsInline
+                    className="relative w-full h-full object-contain z-[1]"
+                    style={{ objectPosition: slide.objectPosition || "center" }}
+                  />
+               ) : (
+                  <img
+                    src={currentImg}
+                    alt=""
+                    className="relative w-full h-full object-contain z-[1]"
+                    style={{ objectPosition: slide.objectPosition || "center" }}
+                  />
+               )}
+            </div>
+          );
+        })}
+      </motion.div>
 
-      <div className="boutique-container relative z-10 w-full px-16 lg:px-24 pointer-events-none">
+      {/* Content Layer */}
+      <div className="Signature-container relative z-10 w-full px-6 sm:px-12 md:px-16 lg:px-24 pointer-events-none">
         <AnimatePresence mode="wait">
           <motion.div
             key={current}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.6 }}
             className="max-w-xl lg:max-w-2xl pointer-events-auto"
           >
-            <motion.h2
-              className="hero-title-responsive font-serif font-medium mb-4 text-white tracking-tight leading-[1.1] md:leading-[1]"
-            >
-              {currentSlide.titleFirstLine}
-              <br />
-              <span className="gold-gradient-text font-medium">{currentSlide.titleHighlight}</span> {currentSlide.titleLastLine}
-            </motion.h2>
-
-            <motion.p
-              className="hero-subtitle-responsive text-white/80 font-sans max-w-lg mb-8 leading-relaxed opacity-90"
-            >
-              {currentSlide.subtitle}
-            </motion.p>
-            
-            <Link to={currentSlide.link} className="inline-block">
-              <Button className="bg-[#B0843D] text-[#310101] hover:bg-[#C29B5D] px-8 py-7 md:px-12 md:py-8 text-[11px] md:text-[13px] font-bold uppercase tracking-widest transition-all duration-300 shadow-[0_0_40px_rgba(176,132,61,0.2)] hover:shadow-[0_0_60px_rgba(176,132,61,0.4)]">
-                {currentSlide.buttonText}
-              </Button>
-            </Link>
+            {(currentSlide?.titleFirstLine || currentSlide?.titleHighlight || currentSlide?.titleLastLine) && (
+              <h2 className="hero-title-responsive font-serif font-medium mb-4 text-white tracking-tight leading-[1.1] md:leading-[1]">
+                {currentSlide.titleFirstLine}
+                {currentSlide.titleFirstLine && <br />}
+                <span className="gold-gradient-text font-medium">{currentSlide.titleHighlight}</span> {currentSlide.titleLastLine}
+              </h2>
+            )}
+            {currentSlide?.subtitle && (
+              <p className="hero-subtitle-responsive text-white/80 font-sans max-w-lg mb-8 leading-relaxed opacity-90">
+                {currentSlide.subtitle}
+              </p>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Manual Navigation Arrows - Desktop Only */}
+      {/* Controls */}
       {activeSlides.length > 1 && (
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-30 w-full px-2 md:px-4 hidden md:flex justify-between pointer-events-none">
-          <button 
-            onClick={handlePrev}
-            className="pointer-events-auto w-10 h-10 md:w-14 md:h-14 flex items-center justify-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-white/30 hover:text-[#B0843D] hover:bg-white/10 hover:border-[#B0843D]/30 hover:scale-110 active:scale-90 transition-all shadow-xl"
-          >
-            <ChevronLeft className="w-5 h-5 md:w-7 md:h-7" />
-          </button>
-          <button 
-            onClick={handleNext}
-            className="pointer-events-auto w-10 h-10 md:w-14 md:h-14 flex items-center justify-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-white/30 hover:text-[#B0843D] hover:bg-white/10 hover:border-[#B0843D]/30 hover:scale-110 active:scale-90 transition-all shadow-xl"
-          >
-            <ChevronRight className="w-5 h-5 md:w-7 md:h-7" />
-          </button>
-        </div>
-      )}
-
-      {/* Slider Indicator Line - Smooth Moving */}
-      {activeSlides.length > 1 && (
-        <div className="absolute bottom-10 left-12 sm:left-16 md:left-24 z-30 flex items-center gap-2">
-          {activeSlides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              className="py-2 focus:outline-none group"
-            >
-              <div className={`h-[2px] transition-all duration-700 ease-out rounded-full ${
-                i === current ? 'w-12 md:w-16 bg-[#B0843D]' : 'w-4 md:w-6 bg-white/20 group-hover:bg-white/40'
-              }`} />
+        <>
+          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-30 w-full px-2 md:px-4 hidden md:flex justify-between pointer-events-none">
+            <button onClick={handlePrev} className="pointer-events-auto w-10 h-10 md:w-14 md:h-14 flex items-center justify-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-white/30 hover:text-[#B0843D] hover:bg-white/10 transition-all shadow-xl">
+              <ChevronLeft className="w-5 h-5 md:w-7 md:h-7" />
             </button>
-          ))}
-          <div className="ml-4 flex items-center font-sans text-[10px] md:text-[12px] font-bold text-white/40 tracking-[0.2em] uppercase">
-            <span className="text-white">0{current + 1}</span>
-            <span className="mx-2 opacity-20">/</span>
-            <span>0{activeSlides.length}</span>
+            <button onClick={handleNext} className="pointer-events-auto w-10 h-10 md:w-14 md:h-14 flex items-center justify-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-white/30 hover:text-[#B0843D] hover:bg-white/10 transition-all shadow-xl">
+              <ChevronRight className="w-5 h-5 md:w-7 md:h-7" />
+            </button>
           </div>
-        </div>
+          <div className="absolute bottom-10 left-6 sm:left-12 md:left-24 z-30 flex items-center gap-2">
+            {activeSlides.map((_, i) => (
+              <button key={i} onClick={() => { setTrackIndex(i + 1); setCurrent(i); }} className="py-2 focus:outline-none group">
+                <div className={`h-[2px] transition-all duration-700 ease-out rounded-full ${i === current ? 'w-12 md:w-16 bg-[#B0843D]' : 'w-4 md:w-6 bg-white/20 group-hover:bg-white/40'}`} />
+              </button>
+            ))}
+          </div>
+        </>
       )}
-
     </section>
   );
 };

@@ -24,7 +24,7 @@ const PolicyLayout = ({ title, children }: { title: string, children: React.Reac
 
 const Returns = () => (
   <PolicyLayout title="Returns & Exchanges">
-    <p>We take pride in our boutique curation. If your order doesn't meet your expectations, we provide a streamlined return process.</p>
+    <p>We take pride in our Signature curation. If your order doesn't meet your expectations, we provide a streamlined return process.</p>
     
     <h3>1. Initiation of Returns</h3>
     <p>To initiate a return, please contact our support team at support@kaleemiya.com with your order number. We will guide you through the next steps.</p>

@@ -21,6 +21,7 @@ import { useUI } from "@/context/UIContext.tsx";
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { accountOpen, setAccountOpen } = useUI();
   const [scrolled, setScrolled] = useState(false);
@@ -89,7 +90,17 @@ const Header = () => {
         <div className="max-w-screen-2xl mx-auto px-4 md:px-6 flex items-center h-20 sm:h-24 lg:h-28 relative">
           
           {/* Logo - Fixed Left */}
-          <div className="flex-shrink-0 z-20">
+          <div className="flex-shrink-0 z-20 flex items-center gap-1 sm:gap-2">
+            {/* Mobile Back Button - ONLY on subpages */}
+            {location.pathname !== "/" && (
+              <button 
+                onClick={() => navigate(-1)}
+                className="xl:hidden p-2 -ml-1 text-white/80 hover:text-[#DEB87A] active:scale-75 transition-all"
+                aria-label="Go Back"
+              >
+                <ArrowLeft className="w-6 h-6 sm:w-7 sm:h-7" />
+              </button>
+            )}
             <Link to="/" className="block transition-transform active:scale-95">
               <img 
                 src="/logo.png?v=4" 

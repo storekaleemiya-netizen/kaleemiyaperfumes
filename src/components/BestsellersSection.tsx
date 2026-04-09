@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import ProductCard from "./ProductCard";
 import SectionHeading from "./SectionHeading";
 import { useProducts } from "@/hooks/useProducts";
@@ -38,7 +39,7 @@ const BestsellersSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.1 }}
               transition={{ duration: 0.5, delay: i * 0.05 }}
-              className="snap-center shrink-0 w-[75vw] sm:w-[300px] md:w-[320px]"
+              className="snap-center shrink-0 w-[85vw] sm:w-[280px] md:w-[300px]"
             >
               <ProductCard {...p} category={p.category} subCategory={p.subCategory} />
             </motion.div>
@@ -60,6 +61,15 @@ const BestsellersSection = () => {
         >
           <ChevronRight className="w-5 h-5" />
         </button>
+      </div>
+
+      <div className="mt-12 flex justify-center">
+        <Link 
+          to="/shop?category=ourbestseller" 
+          className="px-10 py-4 bg-[#310101] text-white rounded-full text-[11px] md:text-[13px] font-black uppercase tracking-[0.2em] hover:bg-[#B0843D] transition-all shadow-lg hover:shadow-xl active:scale-95 duration-300"
+        >
+          View All Bestsellers
+        </Link>
       </div>
     </section>
   );

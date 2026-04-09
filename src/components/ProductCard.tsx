@@ -55,7 +55,7 @@ const ProductCard = ({ id, image, name, price, isNew, category, subCategory, dis
       className="group w-full h-full cursor-pointer bg-[#FDFCFB] border border-black/5 hover:border-[#B0843D]/30 transition-all duration-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl flex flex-col relative"
       onClick={() => navigate(`/product/${id}`)}
     >
-      <div className="relative h-52 sm:h-60 md:h-64 overflow-hidden bg-white rounded-t-xl group/media">
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-white rounded-t-xl group/media">
         <img
           src={image}
           alt={name}
@@ -76,7 +76,7 @@ const ProductCard = ({ id, image, name, price, isNew, category, subCategory, dis
         )}
       </div>
 
-      <div className="px-3 pb-3 md:px-4 md:pb-4 flex flex-col flex-1 text-left bg-[#FDFCFB] relative">
+      <div className="px-4 pb-5 md:px-6 md:pb-7 flex flex-col flex-1 text-left bg-[#FDFCFB] relative">
         
         {/* Rating Right Below Image aligned to Right */}
         <div className="flex justify-end mb-1 mt-1.5 md:mt-2">

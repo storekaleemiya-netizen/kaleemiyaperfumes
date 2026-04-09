@@ -78,7 +78,7 @@ const ProductDetail = () => {
   if (!product) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <h2 className="text-2xl font-serif mb-4 text-[#310101]">Boutique Item Not Found</h2>
+        <h2 className="text-2xl font-serif mb-4 text-[#310101]">Signature Item Not Found</h2>
         <Button onClick={() => navigate("/shop")} className="bg-[#310101] text-white px-8 py-6 rounded-xl uppercase font-black tracking-widest text-[15px]">Return to Collection</Button>
       </div>
     );
@@ -150,17 +150,6 @@ const ProductDetail = () => {
       <div className="h-24 md:h-32"></div>
 
       <main className="flex-grow w-full max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20 mb-20 relative">
-        <div className="absolute left-6 md:left-10 z-30 top-4">
-          <motion.button
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            onClick={() => navigate(-1)}
-            className="p-3 sm:p-3.5 rounded-full bg-white shadow-2xl border border-[#310101]/5 text-[#310101] hover:bg-black/5 active:scale-90 transition-all shrink-0"
-            aria-label="Go Back"
-          >
-            <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-          </motion.button>
-        </div>
 
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-muted-foreground uppercase tracking-widest mb-8 overflow-x-auto whitespace-nowrap pb-2 pl-12 sm:pl-14">
@@ -249,7 +238,7 @@ const ProductDetail = () => {
 
             <div className="space-y-6">
               <p className="text-muted-foreground font-sans leading-relaxed tracking-wide">
-                {product.description || "Indulge in the luxury of Kaleemiya Boutique. This exquisite product is meticulously crafted using the finest materials and traditional techniques, ensuring a premium experience that nourishes the soul."}
+                {product.description || "Indulge in the luxury of Kaleemiya Signature. This exquisite product is meticulously crafted using the finest materials and traditional techniques, ensuring a premium experience that nourishes the soul."}
               </p>
 
               {product.highlights && (
@@ -386,7 +375,7 @@ const ProductDetail = () => {
              </motion.div>
            ) : (
              <div className="bg-gray-50 rounded-[40px] p-12 text-center space-y-6 border border-dashed">
-                <p className="text-xl font-serif italic opacity-40">Please sign in to share your boutique experience.</p>
+                <p className="text-xl font-serif italic opacity-40">Please sign in to share your Signature experience.</p>
                 <Button onClick={() => navigate("/login")} className="bg-[#B0843D] text-white px-10 py-5 rounded-full uppercase font-black text-xs tracking-[0.2em] shadow-lg">Sign In to Rate</Button>
              </div>
            )}

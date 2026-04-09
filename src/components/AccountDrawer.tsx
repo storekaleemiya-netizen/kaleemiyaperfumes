@@ -129,7 +129,7 @@ const AccountDrawer = ({ isOpen, onClose }: AccountDrawerProps) => {
                       
                       <div className="pt-4 border-t border-[#310101]/5">
                         <span className="inline-block px-5 py-2 bg-[#B0843D] text-[#E5D5C5] rounded-full text-[12px] font-black uppercase tracking-[0.2em] shadow-lg shadow-[#B0843D]/20">
-                           PREMIUM BOUTIQUE MEMBER
+                           PREMIUM Signature MEMBER
                         </span>
                       </div>
                    </div>

@@ -17,6 +17,7 @@ import AdminRequest from "./pages/AdminRequest.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AIChatbot from "./components/AIChatbot.tsx";
 import WhatsAppButton from "./components/WhatsAppButton.tsx";
+import GlobalBackButton from "./components/GlobalBackButton.tsx";
 import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import SplashScreen from "./components/SplashScreen.tsx";
@@ -81,6 +82,7 @@ const SupportWidgets = () => {
     <>
       <WhatsAppButton />
       <AIChatbot />
+      <GlobalBackButton />
     </>
   );
 };

@@ -59,7 +59,7 @@ const AdminLogin = () => {
               <ShieldAlert className="w-4 h-4 text-[#B0843D]" />
               <span className="text-[14px] font-black uppercase tracking-[0.3em] text-[#B0843D]">Access Protocol Verification</span>
             </div>
-            <h1 className="text-7xl font-serif font-black tracking-tighter leading-[0.9] italic lowercase first-letter:uppercase">Boutique authority</h1>
+            <h1 className="text-7xl font-serif font-black tracking-tighter leading-[0.9] italic lowercase first-letter:uppercase">Signature authority</h1>
             <p className="text-xl font-medium text-white/40 max-w-lg leading-relaxed uppercase tracking-widest text-[15px]">
               Access restricted to the administrative elite of <span className="text-white font-black">Kaleemiya Perfumes</span>.
             </p>

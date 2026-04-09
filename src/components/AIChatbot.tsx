@@ -92,7 +92,7 @@ const AIChatbot = () => {
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "I'm sorry, I'm experiencing a technical issue. Please visit our boutique or try again later.",
+        content: "I'm sorry, I'm experiencing a technical issue. Please visit our Signature or try again later.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMsg]);

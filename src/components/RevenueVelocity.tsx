@@ -46,7 +46,7 @@ const RevenueVelocity = () => {
     <Card className="rounded-[40px] shadow-xl border-none p-0 md:p-6 overflow-hidden">
       <CardHeader className="p-6 md:p-6">
         <CardTitle className="text-2xl md:text-4xl font-serif font-black italic text-[#310101] tracking-tight">Revenue Velocity</CardTitle>
-        <CardDescription className="text-[#B0843D] text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] opacity-80">Graphed Boutique Analytics</CardDescription>
+        <CardDescription className="text-[#B0843D] text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] opacity-80">Graphed signature Analytics</CardDescription>
       </CardHeader>
       <CardContent className="p-2 md:p-6">
         <ChartContainer config={chartConfig} className="min-h-[200px] md:min-h-[300px] w-full">
