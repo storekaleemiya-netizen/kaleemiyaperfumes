@@ -2394,10 +2394,28 @@ const AdminDashboard = () => {
                                  <button onClick={() => handleDeleteHeroSlide(slide.id)} className="w-12 h-12 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-90 transition-all"><Trash2 className="w-5 h-5" /></button>
                               </div>
                               <div className="aspect-[4/5] rounded-[30px] overflow-hidden mb-6 bg-gray-50 border relative">
-                                 {(slide.video || slide.image?.match(/\.(mp4|mov|webm|quicktime)$|video\/upload/)) ? (
-                                    <video src={slide.video || slide.image} className="w-full h-full object-cover" muted loop autoPlay />
+                                 {/* Device Indicators */}
+                                 <div className="absolute top-4 left-4 z-20 flex gap-1.5">
+                                    {(slide.image || slide.video) && (
+                                      <span className="w-6 h-6 rounded-md bg-black/60 backdrop-blur-md text-white text-[9px] font-black flex items-center justify-center border border-white/20">D</span>
+                                    )}
+                                    {(slide.mobileImage || slide.mobileVideo) && (
+                                      <span className="w-6 h-6 rounded-md bg-[#B0843D]/80 backdrop-blur-md text-white text-[9px] font-black flex items-center justify-center border border-white/20">M</span>
+                                    )}
+                                 </div>
+
+                                 {(slide.video || slide.mobileVideo || (slide.image || slide.mobileImage)?.match(/\.(mp4|mov|webm|quicktime)$|video\/upload/)) ? (
+                                    <video 
+                                      src={slide.video || slide.image || slide.mobileVideo || slide.mobileImage} 
+                                      className="w-full h-full object-cover" 
+                                      muted loop autoPlay 
+                                    />
                                  ) : (
-                                    <img src={slide.image} className="w-full h-full object-cover" style={{ objectPosition: slide.objectPosition || "top" }} />
+                                    <img 
+                                      src={slide.image || slide.mobileImage} 
+                                      className="w-full h-full object-cover" 
+                                      style={{ objectPosition: slide.objectPosition || "top" }} 
+                                    />
                                  )}
                                  <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
                                     <h5 className="text-[#E5D5C5] font-serif font-black italic text-xl leading-tight">
@@ -2408,7 +2426,7 @@ const AdminDashboard = () => {
                               <div className="space-y-4 px-2">
                                  <p className="text-[13px] font-medium text-black/50 italic line-clamp-2">"{slide.subtitle}"</p>
                                  <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#B0843D] px-3 py-1.5 bg-[#B0843D]/5 rounded-full">{slide.buttonText}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#B0843D] px-3 py-1.5 bg-[#B0843D]/5 rounded-full">{slide.buttonText || "PREVIEW"}</span>
                                     <span className="text-[10px] font-black uppercase tracking-widest opacity-20">{slide.link}</span>
                                  </div>
                               </div>
