@@ -105,7 +105,7 @@ const HeroSection = () => {
   const currentSlide = activeSlides[current];
 
   return (
-    <section className="relative w-full aspect-[4/5] md:aspect-auto md:h-[85vh] lg:h-[90vh] flex items-center overflow-hidden bg-black">
+    <section className="relative w-full aspect-[4/5] md:aspect-video flex items-center overflow-hidden bg-black">
       {/* Infinite Track */}
       <motion.div
         className="absolute inset-0 flex touch-pan-y"
@@ -131,20 +131,45 @@ const HeroSection = () => {
 
           return (
             <div key={`${slide.id}-${index}`} className="relative min-w-full h-full flex items-center overflow-hidden">
+               {/* Ambient Background Layer (Blurs to fill gaps) */}
+               <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                  {(currentVid || isVideo(currentImg)) ? (
+                    <video
+                      src={currentVid || currentImg}
+                      autoPlay muted loop playsInline
+                      className="w-full h-full object-cover blur-2xl opacity-40 scale-110"
+                    />
+                  ) : (
+                    <img
+                      src={currentImg}
+                      alt=""
+                      className="w-full h-full object-cover blur-2xl opacity-40 scale-110"
+                    />
+                  )}
+               </div>
+
                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-[2]" />
+               
+               {/* Main Hero Asset */}
                {(currentVid || isVideo(currentImg)) ? (
                   <video
                     src={currentVid || currentImg}
                     autoPlay muted loop playsInline
                     className="relative w-full h-full object-contain z-[1]"
-                    style={{ objectPosition: slide.objectPosition || "center" }}
+                    style={{ 
+                      objectPosition: slide.objectPosition || "center",
+                      scale: slide.imageScale || 1
+                    }}
                   />
                ) : (
                   <img
                     src={currentImg}
-                    alt=""
+                    alt="Hero Slide"
                     className="relative w-full h-full object-contain z-[1]"
-                    style={{ objectPosition: slide.objectPosition || "center" }}
+                    style={{ 
+                      objectPosition: slide.objectPosition || "center",
+                      scale: slide.imageScale || 1
+                    }}
                   />
                )}
             </div>

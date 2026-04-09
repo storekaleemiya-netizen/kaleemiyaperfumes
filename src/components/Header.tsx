@@ -90,7 +90,7 @@ const Header = () => {
         <div className="max-w-screen-2xl mx-auto px-4 md:px-6 flex items-center h-20 sm:h-24 lg:h-28 relative">
           
           {/* Logo - Fixed Left */}
-          <div className="flex-shrink-0 z-20 flex items-center gap-1 sm:gap-2">
+          <div className="flex-shrink-0 z-20 flex items-center">
             {/* Mobile Back Button - ONLY on subpages */}
             {location.pathname !== "/" && (
               <button 
@@ -101,7 +101,7 @@ const Header = () => {
                 <ArrowLeft className="w-6 h-6 sm:w-7 sm:h-7" />
               </button>
             )}
-            <Link to="/" className="block transition-transform active:scale-95">
+            <Link to="/" className="block transition-transform active:scale-95 pr-1">
               <img 
                 src="/logo.png?v=4" 
                 alt="Kaleemiya Perfumes Logo" 
@@ -159,13 +159,41 @@ const Header = () => {
 
           {/* Actions - Fixed Right */}
           <div className="flex items-center gap-1.5 sm:gap-3 lg:gap-5 ml-auto z-20">
-            {/* Universal Search (Desktop & Mobile) */}
+            {/* Desktop Search Icon */}
             <button 
               onClick={() => setSearchOpen(true)}
-              className="p-2 text-white/80 hover:text-[#DEB87A] active:scale-90 transition-all"
+              className="hidden lg:flex p-2 text-white/80 hover:text-[#DEB87A] active:scale-90 transition-all"
             >
-              <Search className="w-5.5 h-5.5 lg:w-6 lg:h-6" />
+              <Search className="w-6 h-6" />
             </button>
+
+            {/* Mobile Persistent Search Bar (Always visible on mobile) */}
+            <div className="xl:hidden flex-1 relative ml-[-12px] mr-0.5 sm:mr-2">
+              <input 
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    navigate(`/shop?search=${encodeURIComponent(searchQuery)}`);
+                    setSearchQuery('');
+                  }
+                }}
+                placeholder="Product Search..."
+                className="w-full bg-white/10 border border-white/20 rounded-full py-2 sm:py-2.5 pl-4 pr-10 text-[11px] sm:text-[13px] font-sans text-white focus:bg-white/20 focus:border-[#DEB87A]/50 focus:outline-none transition-all placeholder:text-white/40"
+              />
+              <button 
+                onClick={() => {
+                  if (searchQuery.trim()) {
+                    navigate(`/shop?search=${encodeURIComponent(searchQuery)}`);
+                    setSearchQuery('');
+                  }
+                }}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2"
+              >
+                <Search className="w-4.5 h-4.5 text-[#DEB87A]" />
+              </button>
+            </div>
 
             {/* Account */}
             <button 

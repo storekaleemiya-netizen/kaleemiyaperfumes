@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper functions
+    // --- Helper Functions ---
     function isSignedIn() {
       return request.auth != null;
     }
@@ -11,99 +11,79 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
     
-    function hasRole(role) {
-      return isSignedIn() && getUserData().role == role;
-    }
-    
     function isWhitelistedSuperAdmin() {
       return isSignedIn() && (
-        request.auth.token.email.toLowerCase() == 'kaleemiya.perfumes@gmail.com' || 
-        request.auth.token.email.toLowerCase() == 'tanveersultna84@gmail.com' ||
-        request.auth.token.email.toLowerCase() == 'tanveersultana84@gmail.com'
+        request.auth.token.email.toLowerCase() == 'storekaleemiya@gmail.com'
       );
     }
     
     function isSuperAdmin() {
-      return isWhitelistedSuperAdmin() || hasRole('super_admin');
+      return isWhitelistedSuperAdmin() || (isSignedIn() && getUserData().role == 'super_admin');
     }
     
     function isAdmin() {
-      return isWhitelistedSuperAdmin() || hasRole('admin') || hasRole('super_admin');
+      return isSuperAdmin() || (isSignedIn() && getUserData().role == 'admin');
+    }
+
+    // --- Data Validation Helpers ---
+    function validateProduct(data) {
+      return data.name is string && data.name.size() > 0
+        && data.price is string && data.price.size() > 0;
+    }
+
+    function validateHeroSlide(data) {
+      return (data.image is string || data.video is string || data.mobileImage is string || data.mobileVideo is string);
     }
 
     // --- Users Collection ---
     match /users/{userId} {
-      // Users can only read their own data; Super Admin can read all
       allow read: if isSignedIn() && (request.auth.uid == userId || isSuperAdmin());
-      
-      // Users can only create their own document on first sign-in
       allow create: if isSignedIn() && request.auth.uid == userId;
-      
-      // Crucial: Only Super Admin can update the 'role' field
-      // Regular users can update their profile (name, etc) BUT NOT their role
       allow update: if isSignedIn() && (
         isSuperAdmin() || 
         (request.auth.uid == userId && request.resource.data.role == resource.data.role)
       );
-      
-      // Only Super Admin can delete, with safety checks for whitelisted accounts
-      allow delete: if isSuperAdmin() && 
-                    resource.data.role != 'super_admin' && 
-                    !['kaleemiya.perfumes@gmail.com', 'tanveersultna84@gmail.com', 'tanveersultana84@gmail.com'].contains(resource.data.email.toLowerCase());
+      allow delete: if isSuperAdmin() && request.auth.token.email.toLowerCase() != 'storekaleemiya@gmail.com';
     }
 
-    // --- Admin Requests Collection ---
-    match /adminRequests/{userId} {
-      // Only Super Admin can read all requests; Users can only read their own
-      allow read: if isSuperAdmin() || (isSignedIn() && userId == request.auth.uid);
-      
-      // Strict Creation Validation:
-      // 1. Must be signed in
-      // 2. Document ID (userId) MUST match your authenticated UID
-      // 3. User must not be already an admin
-      // 4. Status must be 'pending'
-      allow create: if isSignedIn() 
-        && userId == request.auth.uid
-        && request.resource.data.uid == request.auth.uid 
-        && request.resource.data.email == request.auth.token.email
-        && request.resource.data.status == 'pending'
-        && getUserData().role != 'admin'
-        && getUserData().role != 'super_admin';
-
-      // Update validation:
-      // Only Super Admin can approve/reject. 
-      // Users can only "resubmit" a rejected request by changing it back to pending.
-      allow update: if isSuperAdmin() || (
-        isSignedIn() && userId == request.auth.uid && resource.data.status == 'rejected' && request.resource.data.status == 'pending'
-      );
-
-      allow delete: if isSuperAdmin();
-    }
-
-    // --- Products & Metadata ---
+    // --- Products ---
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create, update: if isAdmin() && validateProduct(request.resource.data);
+      allow delete: if isAdmin();
     }
     
+    // --- Hero Slides ---
+    match /hero_slides/{slideId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && validateHeroSlide(request.resource.data);
+      allow delete: if isAdmin();
+    }
+    
+    // --- Inquiries (Client Leads) ---
+    match /inquiries/{inquiryId} {
+      // Anyone can submit a lead, but data must be valid
+      allow create: if request.resource.data.name is string 
+                    && request.resource.data.phone is string;
+      // Only Admins can see or manage leads
+      allow read, update, delete: if isAdmin();
+    }
+
+    // --- Metadata & Config ---
     match /metadata/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
-
-    match /news/{newsId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /hero_slides/{slideId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
     
-    // Default Deny
+    // --- Gallery / Media Items ---
+    match /gallery/{itemId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- Default Security Layer ---
     match /{document=**} {
-      allow read, write: if isSuperAdmin();
+      allow read, write: if isWhitelistedSuperAdmin();
     }
   }
 }
