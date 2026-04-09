@@ -269,7 +269,17 @@ const Shop = ({
 
       <main className="flex-grow w-full max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20 mb-32">
         {/* Page Header */}
-        <div className="relative py-10 md:py-16">
+        <div className="relative pt-6 pb-12 md:pb-16">
+          <button 
+            onClick={() => navigate(-1)}
+            className="group flex items-center gap-2.5 mb-8 text-[#310101]/40 hover:text-[#310101] transition-all"
+          >
+            <div className="w-8 h-8 rounded-full border border-black/5 flex items-center justify-center group-hover:bg-[#310101] group-hover:text-white transition-all shadow-sm">
+              <ArrowLeft className="w-4 h-4" />
+            </div>
+            <span className="text-[12px] font-black uppercase tracking-[0.2em]">Go Back</span>
+          </button>
+
           <div className="flex flex-col items-center text-center space-y-4">
             <motion.h1 
               key={displayTitle}

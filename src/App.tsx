@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-route
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useState, useEffect, useRef } from "react";
 import Index from "./pages/Index.tsx";
 import Shop from "./pages/Shop.tsx";
 import Attar from "./pages/Attar.tsx";
@@ -18,7 +19,6 @@ import NotFound from "./pages/NotFound.tsx";
 import AIChatbot from "./components/AIChatbot.tsx";
 import WhatsAppButton from "./components/WhatsAppButton.tsx";
 import GlobalBackButton from "./components/GlobalBackButton.tsx";
-import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import SplashScreen from "./components/SplashScreen.tsx";
 import { CartProvider } from "./context/CartContext.tsx";
@@ -66,12 +66,10 @@ const SupportWidgets = () => {
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
 
   useEffect(() => {
-    // Listen for Radix UI lock (used by CartDrawer/Sheet)
     const observer = new MutationObserver(() => {
       const isLocked = document.body.hasAttribute('data-radix-scroll-lock');
       setIsOverlayOpen(isLocked);
     });
-
     observer.observe(document.body, { attributes: true });
     return () => observer.disconnect();
   }, []);
@@ -85,6 +83,51 @@ const SupportWidgets = () => {
       <GlobalBackButton />
     </>
   );
+};
+
+// Smart Scroll Restoration: Save position when leaving a page, restore when going back
+const ScrollRestoration = () => {
+  const location = useLocation();
+  const prevPath = useRef<string>(location.pathname);
+
+  useEffect(() => {
+    // Save scroll position of the page we're leaving
+    const savePos = () => {
+      if (prevPath.current) {
+        sessionStorage.setItem(`scroll_${prevPath.current}`, window.scrollY.toString());
+      }
+    };
+
+    savePos();
+    prevPath.current = location.pathname;
+
+    const savedPosStr = sessionStorage.getItem(`scroll_${location.pathname}`);
+    const savedPos = savedPosStr ? parseInt(savedPosStr) : 0;
+    
+    if (savedPos > 0) {
+      let attempts = 0;
+      const maxAttempts = 50; // Try for ~5 seconds (50 * 100ms)
+      
+      const tryRestore = () => {
+        const docHeight = document.documentElement.scrollHeight;
+        
+        // Scroll as much as possible, keep trying until we reach the target or time out
+        window.scrollTo({ top: savedPos, behavior: 'instant' as ScrollBehavior });
+        
+        // If we haven't reached the saved position yet because content is loading
+        if (Math.abs(window.scrollY - savedPos) > 5 && attempts < maxAttempts) {
+          attempts++;
+          setTimeout(tryRestore, 100);
+        }
+      };
+      
+      setTimeout(tryRestore, 50);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    }
+  }, [location.pathname]);
+
+  return null;
 };
 
 const App = () => {
@@ -125,6 +168,7 @@ const App = () => {
                 }}
               >
                 <SEOHead />
+                <ScrollRestoration />
                 <Toaster />
                 <Sonner />
                 <PWAInstallPrompt />

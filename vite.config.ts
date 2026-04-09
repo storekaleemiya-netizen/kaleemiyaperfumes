@@ -48,17 +48,33 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 5000000, // 5MB limit to allow high-res images to be cached
+        maximumFileSizeToCacheInBytes: 5000000,
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        // Prevent chrome-extension and non-http(s) URLs from being cached
+        navigateFallbackDenylist: [/^\/(?:firestore|api|admin)/, /^\/__/],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            urlPattern: ({ url }) => url.protocol === 'https:' && url.hostname.includes('fonts.googleapis.com'),
             handler: "CacheFirst",
             options: {
               cacheName: "google-fonts-cache",
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // <== 365 days
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: ({ url }) => url.hostname.includes('res.cloudinary.com'),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "cloudinary-images-cache",
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
               },
               cacheableResponse: {
                 statuses: [0, 200],

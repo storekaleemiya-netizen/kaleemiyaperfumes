@@ -143,6 +143,7 @@ const HeroSection = () => {
                     <img
                       src={currentImg}
                       alt=""
+                      loading="eager"
                       className="w-full h-full object-cover blur-2xl opacity-40 scale-110"
                     />
                   )}
@@ -165,6 +166,9 @@ const HeroSection = () => {
                   <img
                     src={currentImg}
                     alt="Hero Slide"
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority={index === 0 ? "high" : "auto"}
                     className="relative w-full h-full object-contain z-[1]"
                     style={{ 
                       objectPosition: slide.objectPosition || "center",

@@ -91,16 +91,6 @@ const Header = () => {
           
           {/* Logo - Fixed Left */}
           <div className="flex-shrink-0 z-20 flex items-center">
-            {/* Mobile Back Button - ONLY on subpages */}
-            {location.pathname !== "/" && (
-              <button 
-                onClick={() => navigate(-1)}
-                className="xl:hidden p-2 -ml-1 text-white/80 hover:text-[#DEB87A] active:scale-75 transition-all"
-                aria-label="Go Back"
-              >
-                <ArrowLeft className="w-6 h-6 sm:w-7 sm:h-7" />
-              </button>
-            )}
             <Link to="/" className="block transition-transform active:scale-95 pr-1">
               <img 
                 src="/logo.png?v=4" 

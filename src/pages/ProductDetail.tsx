@@ -149,7 +149,17 @@ const ProductDetail = () => {
       
       <div className="h-24 md:h-32"></div>
 
-      <main className="flex-grow w-full max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20 mb-20 relative">
+      <main className="flex-grow w-full max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20 mb-20 relative pt-10">
+        
+        <button 
+          onClick={() => navigate(-1)}
+          className="group flex items-center gap-2.5 mb-8 text-[#310101]/40 hover:text-[#310101] transition-all"
+        >
+          <div className="w-8 h-8 rounded-full border border-black/5 flex items-center justify-center group-hover:bg-[#310101] group-hover:text-white transition-all shadow-sm">
+            <ArrowLeft className="w-4 h-4" />
+          </div>
+          <span className="text-[12px] font-black uppercase tracking-[0.2em]">Go Back</span>
+        </button>
 
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-muted-foreground uppercase tracking-widest mb-8 overflow-x-auto whitespace-nowrap pb-2 pl-12 sm:pl-14">
