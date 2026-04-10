@@ -57,12 +57,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               uid: currentUser.uid,
               name: currentUser.displayName,
               email: currentUser.email,
-              role: isSuperAdmin ? "super_admin" : "user"
+              role: isSuperAdmin ? "super_admin" : "user",
+              createdAt: new Date().toISOString(),
+              lastLogin: new Date().toISOString()
             }, { merge: true });
             setRole(isSuperAdmin ? "super_admin" : "user");
           } else {
             const data = userDoc.data();
             const dbRole = (data.role || "user").toLowerCase() as "super_admin" | "admin" | "user";
+            
+            // Periodically update lastLogin
+            await setDoc(userRef, { lastLogin: new Date().toISOString() }, { merge: true });
+
             // If the user's role in DB is different from what it should be (for super_admin persistence/override)
             if (isSuperAdmin && dbRole !== "super_admin") {
               await setDoc(userRef, { role: "super_admin" }, { merge: true });
@@ -117,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider value={{ 
       user, 
       role, 
-      isSuperAdmin: SUPER_ADMIN_EMAILS.includes(user?.email?.toLowerCase() || ""),
+      isSuperAdmin: SUPER_ADMIN_EMAILS.includes(user?.email?.trim().toLowerCase() || ""),
       loading, 
       signInWithGoogle, 
       logout 

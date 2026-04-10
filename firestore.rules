@@ -37,7 +37,7 @@ service cloud.firestore {
 
     // --- Users Collection ---
     match /users/{userId} {
-      allow read: if isSignedIn() && (request.auth.uid == userId || isSuperAdmin());
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSignedIn() && (
         isSuperAdmin() || 
@@ -102,9 +102,17 @@ service cloud.firestore {
       allow write: if isSignedIn(); // Logged in users can write reviews
     }
 
+    // --- Admin Access Requests ---
+    match /adminRequests/{requestId} {
+      allow read: if isSignedIn() && (request.auth.uid == requestId || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == requestId;
+      allow update, delete: if isSuperAdmin();
+    }
+
     // --- Default Security Layer ---
     match /{document=**} {
-      allow read, write: if isWhitelistedSuperAdmin();
+      allow read: if isWhitelistedSuperAdmin();
+      allow write: if isWhitelistedSuperAdmin();
     }
   }
 }

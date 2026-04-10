@@ -133,6 +133,9 @@ const ScrollRestoration = () => {
 
 const App = () => {
   const [loading, setLoading] = useState(() => {
+    // Immediate bypass for admin panel to keep management efficient
+    if (window.location.pathname.startsWith("/admin")) return false;
+    
     const splashCount = parseInt(sessionStorage.getItem("kaleemiya_splash_count") || "0");
     return splashCount < 3;
   });
