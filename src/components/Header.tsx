@@ -107,7 +107,7 @@ const Header = () => {
             <ul className="flex items-center pointer-events-auto mr-16">
               {( [
                 ...navLinks
-                  .filter(l => !["Home", "Track Order", "My Orders"].includes(l.name))
+                  .filter(l => !["Track Order", "My Orders"].includes(l.name))
                   .map(l => ({ name: l.name, path: l.href })),
                 { name: "All Collections", path: "/shop", isMega: true },
               ] as any[]).map((link, index, array) => (
