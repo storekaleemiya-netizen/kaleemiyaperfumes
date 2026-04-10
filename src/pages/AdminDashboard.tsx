@@ -172,6 +172,7 @@ const AdminDashboard = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [userDirTab, setUserDirTab] = useState("All");
   const [inventorySearch, setInventorySearch] = useState("");
   const [debouncedInventorySearch, setDebouncedInventorySearch] = useState("");
   
@@ -318,14 +319,6 @@ const AdminDashboard = () => {
   // Real-time listener for admin requests (only for super_admin)
   useEffect(() => {
     if (isSuperAdmin) {
-      const q = query(
-        collection(db, "adminRequests"), 
-        where("status", "==", "pending")
-      );
-      const unsub = onSnapshot(q, (snap) => {
-        setAdminRequests(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      });
-
       const newsQ = query(collection(db, "news"), orderBy("date", "desc"));
       const unsubNews = onSnapshot(newsQ, (snap) => {
         setNews(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -342,11 +335,33 @@ const AdminDashboard = () => {
         );
       });
 
+      // PENDING Admin Requests
+      const pendingQ = query(
+        collection(db, "adminRequests"), 
+        where("status", "==", "pending")
+      );
+      const unsubPending = onSnapshot(pendingQ, (snap) => {
+        setAdminRequests(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      });
+
+      return () => {
+        unsubNews();
+        unsubAdmins();
+        unsubPending();
+      };
+    }
+  }, [role, isSuperAdmin, user?.uid]);
+
+  // Real-time listener for shared data (accessible by Admin & Super Admin)
+  useEffect(() => {
+    if ((role === "admin" || role === "super_admin" || isSuperAdmin) && user) {
+      // 1. All Users
       const usersQ = query(collection(db, "users"));
       const unsubUsers = onSnapshot(usersQ, (snapshot) => {
         setAllUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
 
+      // 2. Request Logs
       const logQ = query(
         collection(db, "adminRequests"), 
         where("status", "!=", "pending")
@@ -355,22 +370,20 @@ const AdminDashboard = () => {
         setRequestLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
 
+      // 3. Inquiries (leads)
       const inqQ = query(collection(db, "inquiries"), orderBy("createdAt", "desc"));
       const unsubInq = onSnapshot(inqQ, (snapshot) => {
         setInquiries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
 
-      // --- HIGH TRAFFIC OPTIMIZATION: Separate stats listener ---
+      // 4. Product Stats (for Dashboard)
       const allProdQ = query(collection(db, "products"));
       const unsubAll = onSnapshot(allProdQ, (snapshot) => {
         setAllInventory(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
 
       return () => {
-        unsub();
-        unsubAdmins();
         unsubUsers();
-        unsubNews();
         unsubLogs();
         unsubInq();
         unsubAll();
@@ -786,47 +799,42 @@ const AdminDashboard = () => {
   const handleApproveReq = async (requestId: string, uid: string, name: string) => {
     if (!isSuperAdmin || processingRequestId) return;
     setProcessingRequestId(requestId);
+    const loadingId = toast.loading(`Granting authority to ${name}...`);
     try {
-       const { getFunctions, httpsCallable } = await import("firebase/functions");
-       const functions = getFunctions();
-       const processRequest = httpsCallable(functions, 'processAdminRequest');
-       
-       const loadingId = toast.loading(`Granting authority to ${name}...`);
-       
-       await processRequest({ 
-         requestId, 
-         targetUid: uid, 
-         action: "approve" 
-       });
-
+       // Direct Firestore Update (Bypassing Cloud Function to avoid CORS and Latency)
+       await updateDoc(doc(db, "users", uid), { role: "admin" });
+       await updateDoc(doc(db, "adminRequests", requestId), { status: "approved" });
        toast.success(`Access granted for ${name}.`, { id: loadingId });
     } catch (error: any) {
-      toast.error(error.message);
+       toast.error(error.message, { id: loadingId });
     } finally {
-      setProcessingRequestId(null);
+       setProcessingRequestId(null);
     }
   };
 
   const handleDenyReq = async (requestId: string, name: string) => {
     if (!isSuperAdmin || processingRequestId) return;
     setProcessingRequestId(requestId);
+    const loadingId = toast.loading(`Refusing request for ${name}...`);
     try {
-      const { getFunctions, httpsCallable } = await import("firebase/functions");
-      const functions = getFunctions();
-      const processRequest = httpsCallable(functions, 'processAdminRequest');
-      
-      const loadingId = toast.loading(`Refusing request for ${name}...`);
-      
-      await processRequest({ 
-        requestId, 
-        action: "reject" 
-      });
-
+      // Direct Firestore Update
+      await updateDoc(doc(db, "adminRequests", requestId), { status: "rejected" });
       toast.success(`Request for ${name} rejected.`, { id: loadingId });
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message, { id: loadingId });
     } finally {
       setProcessingRequestId(null);
+    }
+  };
+
+  const handleDeleteRequest = async (requestId: string) => {
+    if (!isSuperAdmin) return;
+    if (!window.confirm("Permanently delete this request record?")) return;
+    try {
+      await deleteDoc(doc(db, "adminRequests", requestId));
+      toast.success("Request record cleared.");
+    } catch (error: any) {
+      toast.error(error.message);
     }
   };
 
@@ -883,7 +891,7 @@ const AdminDashboard = () => {
     { title: "Signature News and Announcements", icon: Newspaper },
     { title: "New Desk", icon: PlusCircle }, 
     { title: "Orders", icon: ShoppingBag },
-    { title: "Clientele", icon: Users },
+    { title: "User Directory", icon: Users },
     { title: "Categories", icon: Tag },
     { title: "Hero Slider", icon: Calendar },
     ...(isSuperAdmin ? [{ title: "Admin Requests", icon: Zap }] : []),
@@ -1184,8 +1192,13 @@ const AdminDashboard = () => {
             >
               <tab.icon className={`w-3.5 h-3.5 lg:w-5 lg:h-5 shrink-0 transition-colors ${activeTab === tab.title ? "text-[#310101]" : "text-[#E5D5C5]/60"}`} />
               {isSidebarOpen && (
-                <span className="text-[10px] sm:text-[11px] lg:text-[13px] font-black uppercase tracking-[0.05em] text-left leading-none">
-                  {tab.title === "Signature News and Announcements" ? "Broadcasts" : tab.title}
+                <span className="flex-1 text-[10px] sm:text-[11px] lg:text-[13px] font-black uppercase tracking-[0.05em] text-left leading-none flex items-center justify-between">
+                  <span>{tab.title === "Signature News and Announcements" ? "Broadcasts" : tab.title}</span>
+                  {tab.title === "Admin Requests" && adminRequests.length > 0 && (
+                    <span className="ml-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold animate-pulse shadow-lg">
+                      {adminRequests.length}
+                    </span>
+                  )}
                 </span>
               )}
             </button>
@@ -1489,9 +1502,17 @@ const AdminDashboard = () => {
                              ))}
                           </div>
                        </div>
-                       <div className="bg-[#F9F6F2] p-8 rounded-[35px] border border-[#310101]/5 italic font-serif text-lg text-black/70">
-                          "{rev.comment}"
-                       </div>
+                       <div className="bg-[#F9F6F2] p-8 rounded-[35px] border border-[#310101]/5 space-y-3">
+                           <div className="flex items-center gap-2 mb-2">
+                              <Package className="w-3.5 h-3.5 text-[#B0843D]" />
+                              <span className="text-[10px] font-black uppercase tracking-[2px] text-[#B0843D]">
+                                 Product: {allInventory.find(p => p.id === rev.productId)?.name || "Signature Experience"}
+                              </span>
+                           </div>
+                           <p className="italic font-serif text-lg text-black/70 leading-relaxed">
+                              "{rev.comment}"
+                           </p>
+                        </div>
                        <div className="pt-6 border-t border-dashed flex justify-between items-center bg-white">
                           <p className="text-[12px] font-black uppercase tracking-widest text-[#B0843D]">Ref ID: {rev.id.slice(0,8)}</p>
                           <button onClick={() => handleDeleteReview(rev.id)} className="p-4 bg-red-50 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm">
@@ -1706,109 +1727,133 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {activeTab === "Clientele" && (
-            <div className="space-y-16 pb-32 max-w-7xl mx-auto px-4">
+          {activeTab === "User Directory" && (
+            <div className="space-y-8 pb-32 max-w-7xl mx-auto px-4">
               <div className="flex flex-col md:flex-row justify-between items-end gap-10">
                  <div className="space-y-4">
-                    <h2 className="text-5xl font-serif font-black text-black tracking-tighter italic">Signature Clientele</h2>
-                    <p className="text-xl font-serif italic text-black/40">Management of your exclusive community and their shopping profiles.</p>
+                    <h2 className="text-5xl font-serif font-black text-black tracking-tighter italic">Signature Users</h2>
+                    <p className="text-xl font-serif italic text-black/40">Comprehensive directory of authenticated members, admins, and patrons.</p>
                  </div>
-                 <div className="bg-white px-8 py-5 rounded-[25px] border shadow-sm">
-                    <p className="text-[14px] font-black uppercase opacity-30 tracking-widest mb-1">Total Members</p>
-                    <p className="text-3xl font-black">{allUsers.length}</p>
-                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                {allUsers.map((cust) => {
-                  const userOrders = orders.filter(o => o.customer === cust.name);
-                  const totalSpent = userOrders.reduce((acc, curr) => acc + parseInt(curr.amount.replace(/[^0-9]/g, "")), 0);
-                  
-                  return (
-                    <div key={cust.id} className="bg-white rounded-[50px] border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-700 group overflow-hidden">
-                      <div className="p-10 space-y-8">
-                        <div className="flex items-center gap-6">
-                          <div className="w-20 h-20 rounded-[30px] bg-[#310101] text-[#E5D5C5] flex items-center justify-center font-serif text-3xl italic font-bold shadow-xl group-hover:rotate-6 transition-transform">
-                             {cust.name?.charAt(0) || "?"}
-                          </div>
-                          <div>
-                            <h4 className="text-2xl font-serif font-black text-black tracking-tight">{cust.name || "Guest User"}</h4>
-                            <p className="text-[15px] font-black text-[#B0843D] uppercase tracking-[0.2em]">{cust.role}</p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1">
-                           <p className="text-[14px] font-black uppercase opacity-20 tracking-widest leading-none mb-1">Electronic Mail</p>
-                           <p className="text-sm font-bold text-black group-hover:text-[#B0843D] transition-colors">{cust.email}</p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-6 pt-4 border-t border-gray-50">
-                           <div className="space-y-1">
-                              <p className="text-[14px] font-black uppercase opacity-20 tracking-widest">Total Orders</p>
-                              <p className="text-2xl font-black">{userOrders.length}</p>
-                           </div>
-                           <div className="space-y-1">
-                              <p className="text-[14px] font-black uppercase opacity-20 tracking-widest">Total Spend</p>
-                              <p className="text-2xl font-black text-green-600">₹{totalSpent.toLocaleString()}</p>
-                           </div>
-                        </div>
-                      </div>
-                      
-                      <div className="px-10 py-6 bg-gray-50/50 flex justify-between items-center">
-                         <span className="text-[11px] font-black uppercase opacity-30 tracking-widest">ID: {cust.id.slice(0, 8)}...</span>
-                         <button 
-                           onClick={() => handleDeleteUser(cust.id, cust.name || cust.email, cust.email)} 
-                           className="flex items-center gap-2 text-red-500 hover:text-red-700 font-black text-[14px] uppercase tracking-widest transition-colors"
-                         >
-                            <Trash2 className="w-4 h-4" />
-                            Dispose
-                         </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Danger Zone */}
-              {isSuperAdmin && (
-                <div className="mt-20 pt-20 border-t-2 border-dashed border-red-100">
-                   <div className="bg-red-50/50 rounded-[60px] p-16 border-2 border-red-100 flex flex-col md:flex-row items-center justify-between gap-12">
-                      <div className="space-y-4 text-center md:text-left">
-                         <div className="flex items-center gap-4 justify-center md:justify-start">
-                            <ShieldAlert className="w-10 h-10 text-red-600" />
-                            <h3 className="text-5xl font-serif font-black text-red-600 italic">Danger Zone</h3>
-                         </div>
-                         <p className="text-lg font-serif italic text-red-600/60 max-w-xl">
-                            High-level administrative resets. These actions are permanent and cannot be undone. Proceed with extreme caution.
-                         </p>
-                      </div>
-                      <div className="flex flex-col gap-4 w-full md:w-auto">
-                         <button 
-                           onClick={() => {
-                             if(confirm("DANGER: WIPE ENTIRE CATALOG? This deletes all products.")) {
-                               inventory.forEach((p: any) => deleteProduct(p.id));
-                               toast.success("Catalog Wiped");
-                             }
-                           }}
-                           className="bg-red-600 text-white px-12 py-6 rounded-[30px] font-black uppercase text-[14px] shadow-xl hover:bg-black transition-all"
-                         >
-                            Wipe Entire Catalog
-                         </button>
-                         <button 
-                           onClick={() => {
-                             if(confirm("DANGER: WIPE ALL ORDERS? (Mock Action)")) {
-                               setOrders([]);
-                               toast.success("Order History Cleared");
-                             }
-                           }}
-                           className="bg-white border-2 border-red-600 text-red-600 px-12 py-6 rounded-[30px] font-black uppercase text-[14px] hover:bg-red-600 hover:text-white transition-all font-sans"
-                         >
-                            Clear Order History
-                         </button>
-                      </div>
+                 <div className="flex gap-4">
+                   <div className="bg-white px-8 py-5 rounded-[25px] border shadow-sm flex flex-col items-center min-w-[150px]">
+                      <p className="text-[14px] font-black uppercase opacity-30 tracking-widest mb-1">Total Members</p>
+                      <p className="text-3xl font-black">{allUsers.length}</p>
                    </div>
+                   <div className="bg-[#310101] px-8 py-5 rounded-[25px] border shadow-sm flex flex-col items-center min-w-[150px]">
+                      <p className="text-[14px] font-black uppercase text-[#E5D5C5]/50 tracking-widest mb-1">Core Admins</p>
+                      <p className="text-3xl font-black text-white">{allUsers.filter(u => u.role !== 'user').length}</p>
+                   </div>
+                 </div>
+              </div>
+
+              {/* User Search Bar & Tabs */}
+              <div className="flex flex-col gap-8">
+                <div className="flex gap-4 bg-gray-100/50 p-2 rounded-[30px] w-fit border border-gray-100">
+                  {["All", "Admins", "Customers"].map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setUserDirTab(tab)}
+                      className={`px-8 py-3 rounded-[22px] text-[13px] font-black uppercase tracking-widest transition-all ${
+                        userDirTab === tab
+                          ? "bg-white text-black shadow-lg"
+                          : "text-black/30 hover:text-black/60"
+                      }`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
                 </div>
-              )}
+
+                <div className="relative group">
+                  <Search className="absolute left-8 top-1/2 -translate-y-1/2 w-6 h-6 text-black/20 group-focus-within:text-[#B0843D] transition-colors" />
+                  <input 
+                    placeholder={`Search ${userDirTab.toLowerCase()}...`} 
+                    value={requestSearch}
+                    onChange={(e) => setRequestSearch(e.target.value)}
+                    className="w-full bg-white p-8 pl-20 rounded-[40px] text-xl font-bold font-sans outline-none shadow-sm focus:shadow-xl transition-all border border-gray-100 placeholder:text-black/10"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-[#FAF9F6] text-[13px] font-black uppercase tracking-[0.2em] text-[#310101]/90 border-b">
+                      <tr>
+                        <th className="px-10 py-8">User profile</th>
+                        <th className="px-10 py-8">Role</th>
+                        <th className="px-10 py-8">Joined Date</th>
+                        {isSuperAdmin && <th className="px-10 py-8 text-center">Actions</th>}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {allUsers
+                        .filter(u => {
+                          const term = requestSearch.toLowerCase();
+                          const matchesSearch = (u.name?.toLowerCase().includes(term) || u.email?.toLowerCase().includes(term));
+                          
+                          if (userDirTab === "Admins") {
+                            return matchesSearch && (u.role === "admin" || u.role === "super_admin");
+                          }
+                          if (userDirTab === "Customers") {
+                            return matchesSearch && u.role === "user";
+                          }
+                          return matchesSearch;
+                        })
+                        .map((cust) => {
+                        const joinedDate = cust.createdAt ? new Date(cust.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : "Initial Auth";
+                        
+                        return (
+                          <tr key={cust.id} className="hover:bg-gray-50/40 transition-colors group">
+                            <td className="px-10 py-8">
+                              <div className="flex items-center gap-6">
+                                <div className="w-14 h-14 rounded-2xl bg-[#310101] text-[#E5D5C5] flex items-center justify-center font-serif text-xl italic font-bold shrink-0">
+                                   {cust.name?.charAt(0) || cust.email?.charAt(0) || "?"}
+                                </div>
+                                <div>
+                                  <p className="text-lg font-black text-black leading-tight tracking-tight">{cust.name || "Signature User"}</p>
+                                  <p className="text-sm font-bold text-black/30 truncate">{cust.email}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-10 py-8">
+                               <span className={`px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest ${
+                                  cust.role === 'super_admin' ? 'bg-red-50 text-red-600 border border-red-100' :
+                                  cust.role === 'admin' ? 'bg-orange-50 text-orange-600 border border-orange-100' :
+                                  'bg-green-50 text-green-600 border border-green-100'
+                               }`}>
+                                  {cust.role?.replace('_', ' ')}
+                               </span>
+                            </td>
+                            <td className="px-10 py-8 text-sm font-bold text-black/40 italic font-serif">
+                              {joinedDate}
+                            </td>
+                            {isSuperAdmin && (
+                              <td className="px-10 py-8 text-center">
+                                <div className="flex items-center justify-center gap-3">
+                                    {!SUPER_ADMIN_EMAILS.includes(cust.email?.toLowerCase() || "") ? (
+                                      <button 
+                                        onClick={() => handleDeleteUser(cust.id, cust.name || cust.email, cust.email)} 
+                                        className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                                        title="Revoke All Access"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    ) : (
+                                      <span className="p-3 bg-gray-50 text-gray-300 rounded-xl cursor-not-allowed" title="System Protected">
+                                        <Trash2 className="w-4 h-4" />
+                                      </span>
+                                    )}
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           )}
 
@@ -1992,12 +2037,20 @@ const AdminDashboard = () => {
                       >
                          {processingRequestId === item.id ? "Processing..." : "Approve Access"}
                       </button>
+                       <button 
+                          disabled={!!processingRequestId}
+                          onClick={() => handleDenyReq(item.id, item.name)} 
+                          className="bg-white border text-black px-12 py-6 rounded-[30px] font-black uppercase hover:bg-orange-50 text-[14px] disabled:opacity-50 disabled:cursor-not-allowed"
+                       >
+                          {processingRequestId === item.id ? "..." : "Deny"}
+                       </button>
                       <button 
                          disabled={!!processingRequestId}
-                         onClick={() => handleDenyReq(item.id, item.name)} 
-                         className="bg-white border text-black px-12 py-6 rounded-[30px] font-black uppercase hover:bg-red-50 text-[14px] disabled:opacity-50 disabled:cursor-not-allowed"
+                         onClick={() => handleDeleteRequest(item.id)} 
+                         className="bg-red-50 text-red-600 p-6 rounded-[30px] font-black hover:bg-red-600 hover:text-white transition-all disabled:opacity-50"
+                         title="Purge Request"
                       >
-                         {processingRequestId === item.id ? "..." : "Deny"}
+                         <Trash2 className="w-5 h-5" />
                       </button>
                     </div>
                   </div>

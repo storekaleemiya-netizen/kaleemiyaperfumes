@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/firebase";
-import { collection, addDoc, query, where, getDocs, Timestamp, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, Timestamp, onSnapshot, doc, setDoc } from "firebase/firestore";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { ShieldCheck, Loader2 } from "lucide-react";
 
 const AdminRequest = () => {
-  const { user, role, loading: authLoading } = useAuth();
+  const { user, role, isSuperAdmin, loading: authLoading } = useAuth();
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [existingRequest, setExistingRequest] = useState<any>(null);
@@ -31,8 +31,20 @@ const AdminRequest = () => {
           setExistingRequest(pending || requests[0]);
         }
         setCheckLoading(false);
+      }, (error) => {
+        console.error("Request check failed:", error);
+        setCheckLoading(false);
       });
-      return () => unsubscribe();
+
+      // Fail-safe timeout
+      const timeout = setTimeout(() => {
+        setCheckLoading(false);
+      }, 5000);
+
+      return () => {
+        unsubscribe();
+        clearTimeout(timeout);
+      };
     }
   }, [user, authLoading, navigate]);
 
@@ -47,18 +59,19 @@ const AdminRequest = () => {
     setSubmitting(true);
     try {
       // Check for duplicate again just in case
-      const q = query(collection(db, "adminRequests"), 
-        where("uid", "==", user.uid), 
-        where("status", "in", ["pending", "approved"])
-      );
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
-        toast.error("You already have a pending or approved request.");
-        setSubmitting(false);
-        return;
+      // Direct doc check is more efficient and follows security rules
+      const { getDoc } = await import("firebase/firestore");
+      const docSnap = await getDoc(doc(db, "adminRequests", user.uid));
+      
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.status === "pending" || data.status === "approved") {
+          toast.error("You already have a pending or approved request.");
+          setSubmitting(false);
+          return;
+        }
       }
 
-      const { doc, setDoc } = await import("firebase/firestore");
       await setDoc(doc(db, "adminRequests", user.uid), {
         uid: user.uid,
         name: user.displayName || "Unknown User",
@@ -98,10 +111,10 @@ const AdminRequest = () => {
             </div>
           </div>
 
-          {role === "admin" || role === "super_admin" ? (
+          {role === "admin" || role === "super_admin" || isSuperAdmin ? (
             <div className="bg-green-50 border border-green-100 rounded-3xl p-8 text-center space-y-4">
               <p className="text-green-800 font-black uppercase tracking-widest text-sm">Access Already Granted</p>
-              <p className="text-green-700 font-medium italic">You are currently logged in as an {role}.</p>
+              <p className="text-green-700 font-medium italic">You are recognized as a {isSuperAdmin ? "Super Admin" : role}.</p>
               <button 
                 onClick={() => navigate("/admin")}
                 className="w-full bg-[#310101] text-white py-5 rounded-[22px] font-black uppercase tracking-widest text-[14px] shadow-xl hover:scale-105 transition-transform"
